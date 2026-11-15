@@ -7,6 +7,9 @@ target/
 # 本地工具（Maven 发行包等，不入库）
 .tools/
 
+# 课程报告交付物（按学号姓名命名，不随公开仓库发布）
+deliverables/
+
 # 运行数据：H2 数据库文件与索引快照
 data/
 *.mv.db
