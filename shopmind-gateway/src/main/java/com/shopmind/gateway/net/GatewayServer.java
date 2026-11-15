@@ -30,6 +30,8 @@ public final class GatewayServer implements AutoCloseable {
     private final int port;
     private final RetrievalService retrieval;
     private final String token;
+    private final double limitCapacity;
+    private final double limitRefillPerSecond;
     private final GatewayMetrics metrics = new GatewayMetrics();
 
     private EventLoopGroup bossGroup;
@@ -37,9 +39,20 @@ public final class GatewayServer implements AutoCloseable {
     private Channel serverChannel;
 
     public GatewayServer(int port, RetrievalService retrieval, String token) {
+        this(port, retrieval, token, 50.0, 50.0);
+    }
+
+    /**
+     * @param limitCapacity          每连接令牌桶容量（突发上限）
+     * @param limitRefillPerSecond   每连接令牌桶补充速率（长期速率上限）
+     */
+    public GatewayServer(int port, RetrievalService retrieval, String token,
+                         double limitCapacity, double limitRefillPerSecond) {
         this.port = port;
         this.retrieval = retrieval;
         this.token = token;
+        this.limitCapacity = limitCapacity;
+        this.limitRefillPerSecond = limitRefillPerSecond;
     }
 
     public GatewayServer start() throws InterruptedException {
@@ -59,7 +72,7 @@ public final class GatewayServer implements AutoCloseable {
                                 .addLast("idle", new IdleStateHandler(90, 0, 0, TimeUnit.SECONDS))
                                 .addLast("codec", new FrameCodec())
                                 .addLast("handler", new GatewayHandler(
-                                        retrieval, metrics, token, 50.0, 50.0));
+                                        retrieval, metrics, token, limitCapacity, limitRefillPerSecond));
                     }
                 });
 

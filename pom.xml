@@ -28,6 +28,7 @@
         <module>shopmind-service</module>
         <module>shopmind-gateway</module>
         <module>shopmind-web</module>
+        <module>shopmind-loadgen</module>
     </modules>
 
     <dependencyManagement>

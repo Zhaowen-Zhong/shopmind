@@ -67,8 +67,36 @@ public final class KnowledgeBase implements AutoCloseable {
         }
     }
 
-    public boolean delete(long id) {
-        try (Connection conn = open();
+    /**
+     * 批量写入：单连接 + 分批提交。
+     *
+     * <p>逐条 save 会为每条文档新建一次连接，导入两万条会从数秒劣化到数分钟；
+     * 批量接口是语料导入的性能关键，报告里"导入耗时"也是用它测的。</p>
+     */
+    public void saveAll(List<ProductDoc> docs) {
+        String sql = "MERGE INTO product (id, title, description, category) KEY(id) VALUES (?, ?, ?, ?)";
+        try (Connection conn = open(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            conn.setAutoCommit(false);
+            int pending = 0;
+            for (ProductDoc doc : docs) {
+                ps.setLong(1, doc.id());
+                ps.setString(2, doc.title());
+                ps.setString(3, doc.description() == null ? "" : doc.description());
+                ps.setString(4, doc.category() == null ? "" : doc.category());
+                ps.addBatch();
+                if (++pending % 500 == 0) {
+                    ps.executeBatch();
+                    conn.commit();
+                }
+            }
+            ps.executeBatch();
+            conn.commit();
+        } catch (SQLException e) {
+            throw new IllegalStateException("批量写入失败", e);
+        }
+    }
+
+    public boolean delete(long id) {        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement("DELETE FROM product WHERE id = ?")) {
             ps.setLong(1, id);
             return ps.executeUpdate() > 0;

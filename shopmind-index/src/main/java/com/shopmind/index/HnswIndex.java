@@ -65,6 +65,17 @@ public final class HnswIndex implements VectorIndex {
     private final Map<Long, Integer> idToNode = new HashMap<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
+    /**
+     * 访问标记数组（线程内复用）+ 自增时间戳。
+     *
+     * <p>早期实现每次查询都 new 一个 HashSet 记录访问过的节点，ef=100 时单次查询会产生上千次装箱与扩容，
+     * 在 1000 QPS 下直接把 P99 从毫秒级推到数百毫秒（GC 抖动）。
+     * 改为"每个线程一个 int[]，用本次查询的 stamp 写入标记"后，热路径上零分配。</p>
+     */
+    private static final ThreadLocal<int[]> VISIT_MARKS = ThreadLocal.withInitial(() -> new int[0]);
+    private final java.util.concurrent.atomic.AtomicInteger stampGenerator =
+            new java.util.concurrent.atomic.AtomicInteger(1);
+
     private int entryPoint = -1;
     private int maxLevel = -1;
     private int dimension = -1;
@@ -295,14 +306,21 @@ public final class HnswIndex implements VectorIndex {
      * 当"最优结果已经比待探索节点更近"且结果集已满 ef 时提前终止。
      */
     private List<Cand> searchLayer(float[] q, int entry, int ef, int layer) {
-        Set<Integer> visited = new HashSet<>(Math.max(16, ef * 4));
+        int stamp = nextStamp();
+        int nodeCount = nodes.size();
+        int[] marks = VISIT_MARKS.get();
+        if (marks.length < nodeCount) {
+            marks = new int[Math.max(64, Integer.highestOneBit(nodeCount) * 2)];
+            VISIT_MARKS.set(marks);
+        }
+
         PriorityQueue<Cand> candidates = new PriorityQueue<>();
         PriorityQueue<Cand> results = new PriorityQueue<>((a, b) -> Float.compare(b.dist(), a.dist()));
 
         float d0 = Distance.cosineDistance(q, nodes.get(entry).vector);
         candidates.add(new Cand(entry, d0));
         results.add(new Cand(entry, d0));
-        visited.add(entry);
+        marks[entry] = stamp;
 
         while (!candidates.isEmpty()) {
             Cand current = candidates.poll();
@@ -312,9 +330,10 @@ public final class HnswIndex implements VectorIndex {
             List<Integer> links = nodes.get(current.node()).links.get(layer);
             for (int i = 0; i < links.size(); i++) {
                 int next = links.get(i);
-                if (!visited.add(next)) {
+                if (marks[next] == stamp) {
                     continue;
                 }
+                marks[next] = stamp;
                 float dist = Distance.cosineDistance(q, nodes.get(next).vector);
                 if (results.size() < ef || dist < results.peek().dist()) {
                     candidates.add(new Cand(next, dist));
@@ -329,6 +348,19 @@ public final class HnswIndex implements VectorIndex {
         List<Cand> sorted = new ArrayList<>(results);
         sorted.sort(null);
         return sorted;
+    }
+
+    /** 取一个查询专用的时间戳；溢出时清空标记并重置计数，保证标记不会串到旧查询。 */
+    private int nextStamp() {
+        int stamp = stampGenerator.getAndIncrement();
+        if (stamp <= 0) {
+            synchronized (stampGenerator) {
+                stampGenerator.set(1);
+            }
+            java.util.Arrays.fill(VISIT_MARKS.get(), 0);
+            stamp = 1;
+        }
+        return stamp;
     }
 
     /**

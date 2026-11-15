@@ -12,6 +12,8 @@ shopmind:
   gateway:
     port: 9099
     token: shopmind-demo-token
+    limit-capacity: 50
+    limit-refill: 50
   data:
     path: ./data/shopmind
 logging:

@@ -1,0 +1,2 @@
+conn,rate_per_conn,duration_s,requests,errors,avg_us,p50_us,p95_us,p99_us,rps
+10,100,30,30010,0,15842.1,2891,7492,450644,1000.3

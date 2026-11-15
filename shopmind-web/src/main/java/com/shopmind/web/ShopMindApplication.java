@@ -32,6 +32,12 @@ public class ShopMindApplication {
     @Value("${shopmind.data.path:./data/shopmind}")
     private String dataPath;
 
+    @Value("${shopmind.gateway.limit-capacity:50}")
+    private double limitCapacity;
+
+    @Value("${shopmind.gateway.limit-refill:50}")
+    private double limitRefill;
+
     public static void main(String[] args) {
         SpringApplication.run(ShopMindApplication.class, args);
     }
@@ -52,7 +58,8 @@ public class ShopMindApplication {
 
     @Bean
     public GatewayServer gatewayServer(RetrievalService retrievalService) throws InterruptedException {
-        GatewayServer server = new GatewayServer(gatewayPort, retrievalService, gatewayToken).start();
+        GatewayServer server = new GatewayServer(gatewayPort, retrievalService, gatewayToken,
+                limitCapacity, limitRefill).start();
         log.info("自研网关于端口 {} 启动完成，令牌已配置", server.port());
         return server;
     }
