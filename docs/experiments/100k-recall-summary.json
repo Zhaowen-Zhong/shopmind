@@ -1,0 +1,10 @@
+{
+  "queries": 200,
+  "corpus": 100000,
+  "dimension": 384,
+  "ivf_recall10_mean": 0.8055,
+  "hnsw_recall10_mean": 0.8065,
+  "brute_lat_us_mean": 27614.347,
+  "ivf_lat_us_mean": 1411.749,
+  "hnsw_lat_us_mean": 1089.664
+}

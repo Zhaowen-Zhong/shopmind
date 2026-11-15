@@ -38,6 +38,9 @@ public class ShopMindApplication {
     @Value("${shopmind.gateway.limit-refill:50}")
     private double limitRefill;
 
+    @Value("${shopmind.embedding.dimension:384}")
+    private int embeddingDimension;
+
     public static void main(String[] args) {
         SpringApplication.run(ShopMindApplication.class, args);
     }
@@ -49,7 +52,8 @@ public class ShopMindApplication {
 
     @Bean
     public RetrievalService retrievalService(KnowledgeBase knowledgeBase) {
-        RetrievalService service = new RetrievalService(knowledgeBase, new HashingTfIdfEmbedder(128));
+        RetrievalService service = new RetrievalService(knowledgeBase,
+                new HashingTfIdfEmbedder(embeddingDimension));
         if (knowledgeBase.count() > 0) {
             service.rebuildFromStore();
         }

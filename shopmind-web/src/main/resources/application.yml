@@ -16,6 +16,8 @@ shopmind:
     limit-refill: 50
   data:
     path: ./data/shopmind
+  embedding:
+    dimension: 384
 logging:
   level:
     com.shopmind: info

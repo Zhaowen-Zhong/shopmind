@@ -1,0 +1,32 @@
+[
+  {
+    "round": 1,
+    "query": "华为 降噪耳机",
+    "ttfb_ms": 203.7,
+    "total_ms": 479.3
+  },
+  {
+    "round": 2,
+    "query": "小米 机械键盘",
+    "ttfb_ms": 38.1,
+    "total_ms": 289.3
+  },
+  {
+    "round": 3,
+    "query": "索尼 显示器",
+    "ttfb_ms": 9.8,
+    "total_ms": 248.2
+  },
+  {
+    "round": 4,
+    "query": "罗技 游戏鼠标",
+    "ttfb_ms": 9.0,
+    "total_ms": 234.3
+  },
+  {
+    "round": 5,
+    "query": "安克 氮化镓充电器",
+    "ttfb_ms": 9.7,
+    "total_ms": 248.6
+  }
+]

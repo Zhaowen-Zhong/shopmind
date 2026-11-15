@@ -21,7 +21,7 @@ public final class HashingTfIdfEmbedder implements EmbeddingService {
     private long documentCount;
 
     public HashingTfIdfEmbedder() {
-        this(128);
+        this(384);
     }
 
     public HashingTfIdfEmbedder(int dimension) {

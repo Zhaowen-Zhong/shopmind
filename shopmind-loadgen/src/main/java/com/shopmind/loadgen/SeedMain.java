@@ -44,6 +44,10 @@ public final class SeedMain {
             "适合学生党", "适合内容创作", "适合会议室", "适合户外运动"
     };
 
+    private static final String[] VERSIONS = {
+            "标准版", "套装版", "旗舰版", "青春版"
+    };
+
     private SeedMain() {
     }
 
@@ -69,16 +73,18 @@ public final class SeedMain {
                 for (String categoryName : categoryGroup) {
                     for (String attribute : ATTRIBUTES) {
                         for (String scene : SCENES) {
-                            if (docs.size() >= count) {
-                                break outer;
+                            for (String version : VERSIONS) {
+                                if (docs.size() >= count) {
+                                    break outer;
+                                }
+                                index++;
+                                String model = String.format("%s-%04d", brand.substring(0, 1), index % 9000 + 1000);
+                                String title = brand + " " + categoryName + " " + version + " " + model;
+                                String description = categoryName + "，" + version + "，" + attribute + "，" + scene
+                                        + "，支持保修两年，参考价 " + (99 + (index % 60) * 50) + " 元";
+                                docs.add(new ProductDoc(index, title, description,
+                                        categoryGroup[0]));
                             }
-                            index++;
-                            String model = String.format("%s-%04d", brand.substring(0, 1), index % 9000 + 1000);
-                            String title = brand + " " + categoryName + " " + model;
-                            String description = categoryName + "，" + attribute + "，" + scene
-                                    + "，支持保修两年，参考价 " + (99 + (index % 60) * 50) + " 元";
-                            docs.add(new ProductDoc(index, title, description,
-                                    categoryGroup[0]));
                         }
                     }
                 }
