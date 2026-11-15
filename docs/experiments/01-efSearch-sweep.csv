@@ -1,0 +1,19 @@
+experiment,ef_search_sweep
+run_date,2026-11-15
+environment,Windows 11 / OpenJDK 21.0 / 单线程 JUnit 直跑（未加压）
+corpus_size,5000
+dimension,64
+queries,200
+top_k,10
+m,16
+ef_construction,200
+seed_corpus,2026
+seed_graph,20261115
+warmup,yes (200 queries per config)
+efSearch,recall_at_10,avg_latency_micros
+20,0.6295,102.7
+30,0.7385,118.3
+50,0.8565,191.4
+80,0.9380,209.0
+120,0.9800,299.3
+200,0.9985,463.2

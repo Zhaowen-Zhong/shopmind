@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>ShopMind 智能导购</title>
+    <style>
+        :root { --ink:#1b2431; --muted:#6b7787; --line:#e3e8ef; --accent:#0f6b5c; --bg:#f6f8fa; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+        header { background:#fff; border-bottom:1px solid var(--line); padding:16px 28px; display:flex; align-items:baseline; gap:18px; }
+        header h1 { font-size:18px; margin:0; }
+        header nav { margin-left:auto; display:flex; gap:16px; font-size:14px; }
+        header nav a { color:var(--muted); text-decoration:none; }
+        header nav a.active { color:var(--accent); font-weight:600; }
+        main { max-width:900px; margin:22px auto; padding:0 20px 44px; }
+        .panel { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px 20px; }
+        .row { display:flex; gap:10px; }
+        input { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
+        button { padding:10px 20px; border:none; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+        #answer { margin-top:16px; font-size:14px; line-height:1.9; min-height:130px; white-space:pre-wrap; }
+        .meta { margin-top:12px; font-size:12.5px; color:var(--muted); }
+        .note { margin-top:14px; font-size:12.5px; color:var(--muted); line-height:1.7; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>ShopMind · Java 自研向量检索与商品知识库</h1>
+    <nav>
+        <a href="/">监控看板</a>
+        <a href="/console">检索调试台</a>
+        <a href="/kb">知识库</a>
+        <a href="/guide" class="active">智能导购</a>
+    </nav>
+</header>
+<main>
+    <div class="panel">
+        <div class="row">
+            <input id="q" value="推荐一款适合长时间办公的键盘" placeholder="描述你的购物需求">
+            <button onclick="ask()">开始导购</button>
+        </div>
+        <div id="answer"></div>
+        <div class="meta" id="meta"></div>
+        <p class="note">
+            导购流程：LLM 未接入时，回答由 HNSW 检索结果按固定话术组织并流式推送（SSE），
+            因此延迟与内容都可复现、可评测；接入大模型只需替换回答组装部分，检索链路不变。
+        </p>
+    </div>
+</main>
+<script>
+    let source = null;
+
+    function ask() {
+        const q = document.getElementById('q').value.trim();
+        if (!q) { alert('请输入需求描述'); return; }
+        if (source) { source.close(); }
+        const answer = document.getElementById('answer');
+        answer.textContent = '';
+        document.getElementById('meta').textContent = '连接中…';
+
+        source = new EventSource('/api/guide?q=' + encodeURIComponent(q));
+        source.addEventListener('chunk', e => { answer.textContent += e.data; });
+        source.addEventListener('done', e => {
+            const payload = JSON.parse(e.data);
+            document.getElementById('meta').textContent =
+                `首字节到结束总耗时 ${payload.latencyMicros} μs ・ 传输方式 SSE`;
+            source.close();
+        });
+        source.onerror = () => {
+            document.getElementById('meta').textContent = '连接中断，请重试';
+            source.close();
+        };
+    }
+</script>
+</body>
+</html>

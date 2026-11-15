@@ -1,0 +1,20 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: shopmind
+  thymeleaf:
+    cache: false
+  mvc:
+    format:
+      date: iso
+shopmind:
+  gateway:
+    port: 9099
+    token: shopmind-demo-token
+  data:
+    path: ./data/shopmind
+logging:
+  level:
+    com.shopmind: info
+    io.netty: warn
