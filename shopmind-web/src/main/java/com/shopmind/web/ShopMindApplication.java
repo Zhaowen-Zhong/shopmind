@@ -42,7 +42,7 @@ public class ShopMindApplication {
         SpringApplication.run(ShopMindApplication.class, args);
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     public KnowledgeBase knowledgeBase() {
         return KnowledgeBase.file(dataPath);
     }
@@ -56,7 +56,7 @@ public class ShopMindApplication {
         return service;
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     public GatewayServer gatewayServer(RetrievalService retrievalService) throws InterruptedException {
         GatewayServer server = new GatewayServer(gatewayPort, retrievalService, gatewayToken,
                 limitCapacity, limitRefill).start();

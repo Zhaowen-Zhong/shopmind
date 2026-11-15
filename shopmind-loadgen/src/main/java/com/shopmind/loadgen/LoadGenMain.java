@@ -220,4 +220,29 @@ public final class LoadGenMain {
         index = Math.max(0, Math.min(sorted.size() - 1, index));
         return sorted.get(index) / 1000;
     }
+
+    /** 通用 key=value 参数解析，供本模块其他入口（ConnLoadMain 等）复用。 */
+    public static Map<String, String> parseArgs(String[] args) {
+        Map<String, String> result = new ConcurrentHashMap<>();
+        for (String arg : args) {
+            String[] parts = arg.split("=", 2);
+            if (parts.length == 2) {
+                result.put(parts[0], parts[1]);
+            }
+        }
+        return result;
+    }
+
+    /** 把采样行整体写入 UTF-8 文件，自动创建父目录。 */
+    public static void writeLines(String file, List<String> lines) {
+        try {
+            Path path = Path.of(file);
+            if (path.getParent() != null) {
+                Files.createDirectories(path.getParent());
+            }
+            Files.write(path, lines, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new IllegalStateException("写入文件失败: " + file, e);
+        }
+    }
 }

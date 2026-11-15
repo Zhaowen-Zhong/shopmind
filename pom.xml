@@ -60,6 +60,8 @@
                     <configuration>
                         <release>${java.version}</release>
                         <encoding>UTF-8</encoding>
+                        <!-- Spring 的 @RequestParam/@PathVariable 依赖参数名反射，必须开启 -parameters -->
+                        <parameters>true</parameters>
                     </configuration>
                 </plugin>
                 <plugin>
