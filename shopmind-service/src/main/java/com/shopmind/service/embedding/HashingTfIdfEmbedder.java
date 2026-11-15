@@ -17,8 +17,9 @@ import java.util.Map;
 public final class HashingTfIdfEmbedder implements EmbeddingService {
 
     private final int dimension;
-    private final Map<String, Integer> documentFrequency = new HashMap<>();
-    private long documentCount;
+    private final Map<String, Integer> documentFrequency = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.atomic.AtomicLong documentCount =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public HashingTfIdfEmbedder() {
         this(384);
@@ -69,12 +70,12 @@ public final class HashingTfIdfEmbedder implements EmbeddingService {
             documentFrequency.merge(token, 1, Integer::sum);
         }
         if (!tokens.isEmpty()) {
-            documentCount++;
+            documentCount.incrementAndGet();
         }
     }
 
     public long documentCount() {
-        return documentCount;
+        return documentCount.get();
     }
 
     public int vocabularySize() {
@@ -83,7 +84,7 @@ public final class HashingTfIdfEmbedder implements EmbeddingService {
 
     private double inverseDocumentFrequency(String token) {
         int df = documentFrequency.getOrDefault(token, 0);
-        return Math.log(1.0 + (documentCount + 1.0) / (df + 1.0)) + 1.0;
+        return Math.log(1.0 + (documentCount.get() + 1.0) / (df + 1.0)) + 1.0;
     }
 
     /** 稳定的字符串哈希，保证同一 token 在任何 JVM 上都落到同一个桶。 */

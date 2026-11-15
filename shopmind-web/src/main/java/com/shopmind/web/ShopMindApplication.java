@@ -41,6 +41,9 @@ public class ShopMindApplication {
     @Value("${shopmind.embedding.dimension:384}")
     private int embeddingDimension;
 
+    @Value("${shopmind.write.mode:delta}")
+    private String writeMode;
+
     public static void main(String[] args) {
         SpringApplication.run(ShopMindApplication.class, args);
     }
@@ -50,10 +53,14 @@ public class ShopMindApplication {
         return KnowledgeBase.file(dataPath);
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     public RetrievalService retrievalService(KnowledgeBase knowledgeBase) {
+        RetrievalService.WriteMode mode = "sync".equalsIgnoreCase(writeMode)
+                ? RetrievalService.WriteMode.SYNC
+                : RetrievalService.WriteMode.DELTA;
         RetrievalService service = new RetrievalService(knowledgeBase,
-                new HashingTfIdfEmbedder(embeddingDimension));
+                new HashingTfIdfEmbedder(embeddingDimension), mode, dataPath);
+        service.recover();
         if (knowledgeBase.count() > 0) {
             service.rebuildFromStore();
         }

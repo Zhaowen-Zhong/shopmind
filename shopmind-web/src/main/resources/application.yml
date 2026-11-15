@@ -18,6 +18,8 @@ shopmind:
     path: ./data/shopmind
   embedding:
     dimension: 384
+  write:
+    mode: delta
 logging:
   level:
     com.shopmind: info
