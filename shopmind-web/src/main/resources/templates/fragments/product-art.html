@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 精细产品插画：按 0..9 分发，白色半透明机身 + 高光 + 地面投影，离线可用 -->
+<svg th:fragment="product-art(index)" viewBox="0 0 100 100" width="118" height="118" aria-hidden="true">
+    <defs>
+        <linearGradient th:id="'glass' + ${index}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity=".55"/>
+        </linearGradient>
+        <linearGradient th:id="'screen' + ${index}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffffff" stop-opacity=".85"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity=".25"/>
+        </linearGradient>
+    </defs>
+
+    <g th:switch="${index}">
+        <!-- 0 手机 -->
+        <g th:case="0">
+            <ellipse cx="50" cy="78" rx="20" ry="4" fill="#0f172a" opacity=".18"/>
+            <rect x="37" y="18" width="26" height="56" rx="6.5" fill="url(#glass0)" stroke="#fff" stroke-opacity=".7"/>
+            <rect x="40" y="23" width="20" height="42" rx="3.5" fill="url(#screen0)"/>
+            <circle cx="50" cy="26.6" r="1.3" fill="#fff" opacity=".8"/>
+            <rect x="47" y="68" width="6" height="1.6" rx=".8" fill="#fff" opacity=".7"/>
+        </g>
+        <!-- 1 耳机 -->
+        <g th:case="1">
+            <ellipse cx="50" cy="80" rx="26" ry="4" fill="#0f172a" opacity=".18"/>
+            <path d="M29 54a21 21 0 0 1 42 0" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".9"/>
+            <rect x="24" y="50" width="13" height="22" rx="5" fill="url(#glass1)" stroke="#fff" stroke-opacity=".7"/>
+            <rect x="63" y="50" width="13" height="22" rx="5" fill="url(#glass1)" stroke="#fff" stroke-opacity=".7"/>
+            <ellipse cx="30.5" cy="61" rx="3.4" ry="6" fill="#fff" opacity=".35"/>
+            <ellipse cx="69.5" cy="61" rx="3.4" ry="6" fill="#fff" opacity=".35"/>
+        </g>
+        <!-- 2 键盘 -->
+        <g th:case="2">
+            <ellipse cx="50" cy="74" rx="32" ry="4.5" fill="#0f172a" opacity=".18"/>
+            <rect x="19" y="34" width="62" height="36" rx="5" fill="url(#glass2)" stroke="#fff" stroke-opacity=".7"/>
+            <g fill="#fff" opacity=".55">
+                <rect x="24" y="39" width="8" height="7" rx="1.5"/>
+                <rect x="34" y="39" width="8" height="7" rx="1.5"/>
+                <rect x="44" y="39" width="8" height="7" rx="1.5"/>
+                <rect x="54" y="39" width="8" height="7" rx="1.5"/>
+                <rect x="64" y="39" width="12" height="7" rx="1.5"/>
+                <rect x="24" y="49" width="8" height="7" rx="1.5"/>
+                <rect x="34" y="49" width="8" height="7" rx="1.5"/>
+                <rect x="44" y="49" width="8" height="7" rx="1.5"/>
+                <rect x="54" y="49" width="8" height="7" rx="1.5"/>
+                <rect x="64" y="49" width="12" height="7" rx="1.5"/>
+                <rect x="24" y="59" width="30" height="7" rx="1.5"/>
+                <rect x="58" y="59" width="18" height="7" rx="1.5"/>
+            </g>
+        </g>
+        <!-- 3 鼠标 -->
+        <g th:case="3">
+            <ellipse cx="50" cy="78" rx="18" ry="4" fill="#0f172a" opacity=".18"/>
+            <path d="M35 40a15 15 0 0 1 30 0v22a15 15 0 0 1-30 0z" fill="url(#glass3)" stroke="#fff" stroke-opacity=".7"/>
+            <line x1="50" y1="40" x2="50" y2="58" stroke="#fff" stroke-width="1.6" opacity=".6"/>
+            <rect x="48.4" y="45" width="3.2" height="6" rx="1.6" fill="#fff" opacity=".7"/>
+        </g>
+        <!-- 4 显示器 -->
+        <g th:case="4">
+            <ellipse cx="50" cy="80" rx="24" ry="4" fill="#0f172a" opacity=".18"/>
+            <rect x="22" y="20" width="56" height="40" rx="4" fill="url(#glass4)" stroke="#fff" stroke-opacity=".7"/>
+            <rect x="25.5" y="23.5" width="49" height="33" rx="2" fill="url(#screen4)"/>
+            <rect x="46" y="60" width="8" height="7" rx="1.5" fill="#fff" opacity=".8"/>
+            <rect x="38" y="67" width="24" height="4" rx="2" fill="#fff" opacity=".7"/>
+        </g>
+        <!-- 5 笔记本 -->
+        <g th:case="5">
+            <ellipse cx="50" cy="80" rx="30" ry="4" fill="#0f172a" opacity=".18"/>
+            <rect x="28" y="20" width="44" height="34" rx="3.5" fill="url(#glass5)" stroke="#fff" stroke-opacity=".7"/>
+            <rect x="31" y="23" width="38" height="28" rx="1.8" fill="url(#screen5)"/>
+            <path d="M22 56h56l4 12H18z" fill="#fff" opacity=".85"/>
+            <rect x="44" y="60" width="12" height="3" rx="1.5" fill="#0f172a" opacity=".25"/>
+        </g>
+        <!-- 6 音箱 -->
+        <g th:case="6">
+            <ellipse cx="50" cy="80" rx="18" ry="4" fill="#0f172a" opacity=".18"/>
+            <rect x="34" y="20" width="32" height="56" rx="5" fill="url(#glass6)" stroke="#fff" stroke-opacity=".7"/>
+            <circle cx="50" cy="32" r="4" fill="#fff" opacity=".55"/>
+            <circle cx="50" cy="56" r="11" fill="#fff" opacity=".4"/>
+            <circle cx="50" cy="56" r="6" fill="#fff" opacity=".5"/>
+            <circle cx="50" cy="56" r="2" fill="#fff" opacity=".8"/>
+        </g>
+        <!-- 7 充电器 -->
+        <g th:case="7">
+            <ellipse cx="50" cy="78" rx="18" ry="4" fill="#0f172a" opacity=".18"/>
+            <rect x="36" y="26" width="28" height="8" rx="2" fill="#fff" opacity=".8"/>
+            <rect x="34" y="32" width="32" height="38" rx="5" fill="url(#glass7)" stroke="#fff" stroke-opacity=".7"/>
+            <rect x="42" y="44" width="16" height="7" rx="2" fill="#fff" opacity=".5"/>
+            <path d="M52 54l-5 8h5l-2 7 7-9h-5l3-6z" fill="#fff" opacity=".85"/>
+        </g>
+        <!-- 8 摄像头 -->
+        <g th:case="8">
+            <ellipse cx="50" cy="78" rx="22" ry="4" fill="#0f172a" opacity=".18"/>
+            <rect x="30" y="32" width="40" height="28" rx="7" fill="url(#glass8)" stroke="#fff" stroke-opacity=".7"/>
+            <circle cx="50" cy="46" r="9" fill="#fff" opacity=".45"/>
+            <circle cx="50" cy="46" r="5" fill="#fff" opacity=".6"/>
+            <circle cx="50" cy="46" r="1.8" fill="#fff"/>
+            <circle cx="63" cy="38" r="1.6" fill="#fff" opacity=".8"/>
+            <path d="M40 60v8h20v-8" fill="#fff" opacity=".7"/>
+        </g>
+        <!-- 9 扫地机器人 -->
+        <g th:case="9">
+            <ellipse cx="50" cy="78" rx="26" ry="4" fill="#0f172a" opacity=".18"/>
+            <circle cx="50" cy="50" r="26" fill="url(#glass9)" stroke="#fff" stroke-opacity=".7"/>
+            <circle cx="50" cy="50" r="9" fill="#fff" opacity=".5"/>
+            <circle cx="50" cy="50" r="3.5" fill="#fff" opacity=".8"/>
+            <circle cx="34" cy="40" r="2" fill="#fff" opacity=".7"/>
+            <circle cx="66" cy="40" r="2" fill="#fff" opacity=".7"/>
+            <path d="M26 56h-6M80 56h-6" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+        </g>
+    </g>
+</svg>
+
+</body>
+</html>

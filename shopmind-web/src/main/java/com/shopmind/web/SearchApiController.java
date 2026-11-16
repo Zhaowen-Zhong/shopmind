@@ -44,6 +44,23 @@ public class SearchApiController {
     private static final Pattern INTERNAL_CODE =
             Pattern.compile("\\s*[A-Za-z\\u4e00-\\u9fa5]-\\d+\\s*$");
 
+    /** 十个一级类目名。 */
+    private static final String[] CATEGORY_NAMES = {
+            "手机", "耳机", "键盘", "鼠标", "显示器", "笔记本", "音箱", "充电器", "摄像头", "扫地机器人"
+    };
+
+    /** 需求关键词 → 需求点（属性 / 场景），用于“需求理解”。 */
+    private static final String[][] NEED_KEYWORDS = {
+            {"降噪", "主动降噪"}, {"续航", "长续航"}, {"轻薄", "轻量化"}, {"轻便", "轻量化"},
+            {"静音", "静音设计"}, {"高刷", "高刷新率"}, {"快充", "快充支持"}, {"工学", "人体工学"},
+            {"防水", "防尘防水"}, {"延迟", "低延迟"}, {"色域", "高色域"}, {"多设备", "多设备切换"},
+            {"联动", "智能联动"}, {"办公", "适合长时间办公"}, {"游戏", "适合游戏电竞"}, {"电竞", "适合游戏电竞"},
+            {"通勤", "适合通勤出差"}, {"出差", "适合通勤出差"}, {"便携", "适合通勤出差"},
+            {"家庭", "适合家庭使用"}, {"家用", "适合家庭使用"}, {"学生", "适合学生党"},
+            {"创作", "适合内容创作"}, {"设计", "适合内容创作"}, {"直播", "适合内容创作"},
+            {"会议", "适合会议室"}, {"户外", "适合户外运动"}, {"运动", "适合户外运动"}
+    };
+
     public SearchApiController(RetrievalService retrievalService, GatewayServer gatewayServer) {
         this.retrievalService = retrievalService;
         this.gatewayServer = gatewayServer;
@@ -162,17 +179,94 @@ public class SearchApiController {
             parts.add("你可以换个说法，比如带上具体品类或使用场景，我再帮你找找。");
             return parts;
         }
-        parts.add("好的，我帮你看了下「" + query + "」，下面这几款比较值得考虑：");
+
+        // —— 第一步：需求理解（把用户的话拆成可核对的需求点）——
+        List<String> needs = detectNeeds(query);
+        String category = detectCategory(query);
+        parts.add("好的，我先帮你拆一下需求。");
+        if (category != null && !needs.isEmpty()) {
+            parts.add("我理解你想找的是「" + category + "」，主要看重：" + String.join("、", needs) + "。");
+        } else if (category != null) {
+            parts.add("我理解你想找的是「" + category + "」，我会按整体匹配度帮你挑。");
+        } else if (!needs.isEmpty()) {
+            parts.add("我理解你主要看重：" + String.join("、", needs) + "。");
+        } else {
+            parts.add("我会用语义相关度结合关键词匹配，帮你挑整体最契合的几款。");
+        }
+
+        // —— 第二步：说明筛选思路 ——
+        parts.add("筛选思路：先用向量语义检索理解你的意图，再用 BM25 关键词匹配校正，最后核对每件商品的卖点是否贴合上面的需求。");
+
+        // —— 第三步：逐商品给出理由（结合该商品的真实卖点）——
+        parts.add("下面是我对比后的结果：");
         for (int i = 0; i < hits.size(); i++) {
             Neighbor hit = hits.get(i);
-            String name = friendlyTitle(retrievalService.titleOf(hit.docId()));
-            if (name.isEmpty()) {
-                name = "商品 " + hit.docId();
+            ProductDoc doc = retrievalService.findDocument(hit.docId()).orElse(null);
+            String name = doc == null ? "商品 " + hit.docId() : friendlyTitle(doc.title());
+            StringBuilder line = new StringBuilder(String.format(
+                    "%d. %s（匹配度约 %.0f%%）", i + 1, name, hit.score() * 100));
+            if (doc != null) {
+                String[] points = docPoints(doc.description());
+                if (points.length > 0) {
+                    line.append("——它").append(String.join("、", points));
+                    String matched = firstMatch(points, needs);
+                    if (matched != null) {
+                        line.append("，正好对应你看重的「").append(matched).append("」");
+                    }
+                }
             }
-            parts.add(String.format("%d. %s，和你的需求匹配度约 %.0f%%。", i + 1, name, hit.score() * 100));
+            line.append("。");
+            parts.add(line.toString());
         }
-        parts.add("如果你告诉我预算或更在意的点（比如续航、降噪、轻薄），我可以再帮你缩小范围。");
+        parts.add("如果你告诉我预算或更在意的点，我可以再帮你缩小范围。");
         return parts;
+    }
+
+    /** 从问句中识别属性 / 场景需求，返回自然语言短语。 */
+    private List<String> detectNeeds(String query) {
+        List<String> found = new ArrayList<>();
+        for (String[] pair : NEED_KEYWORDS) {
+            if (query.contains(pair[0]) && !found.contains(pair[1])) {
+                found.add(pair[1]);
+            }
+        }
+        return found;
+    }
+
+    private String detectCategory(String query) {
+        for (String name : CATEGORY_NAMES) {
+            if (query.contains(name)) {
+                return name;
+            }
+        }
+        return null;
+    }
+
+    /** 从描述中取出该商品的属性与场景卖点。 */
+    private String[] docPoints(String description) {
+        List<String> points = new ArrayList<>();
+        if (description == null) {
+            return new String[0];
+        }
+        String[] parts = description.split("，");
+        for (int i = 2; i < parts.length; i++) {
+            String p = parts[i].trim();
+            if (!p.isBlank() && !p.startsWith("参考价") && !p.contains("保修")) {
+                points.add(p);
+            }
+        }
+        return points.toArray(new String[0]);
+    }
+
+    private String firstMatch(String[] points, List<String> needs) {
+        for (String need : needs) {
+            for (String p : points) {
+                if (p.contains(need) || need.contains(p)) {
+                    return need;
+                }
+            }
+        }
+        return null;
     }
 
     /** 去掉标题末尾的内部型号，只保留品牌 + 系列的营销名称。 */

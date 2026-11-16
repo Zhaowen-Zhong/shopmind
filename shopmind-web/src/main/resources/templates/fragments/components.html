@@ -5,7 +5,7 @@
 <!-- 商品卡片：v 为 ProductView -->
 <article class="product-card" th:fragment="product-card(v)">
     <div class="product-thumb" th:classappend="'t-c' + ${v.categoryIndex()}">
-        <span class="thumb-ic" th:replace="~{fragments/icons :: cat-icon(${v.categoryIndex()})}"></span>
+        <span class="art" th:replace="~{fragments/product-art :: product-art(${v.categoryIndex()})}"></span>
         <span class="cat-tag" th:text="${v.category()}">类目</span>
         <span class="rel-tag" th:if="${v.score() != null}"
               th:text="'相关度 ' + ${#numbers.formatPercent(v.score(), 1, 0)}">相关度</span>

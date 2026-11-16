@@ -14,9 +14,9 @@ import java.util.List;
  * 适合压测"索引结构与网络层"；而<b>召回质量</b>的评测另用真实公开语料的小规模子集，
  * 两者在报告中分别标注口径，不混用。</p>
  *
- * <p>命名与定价按真实电商口径设计：每个类目只放该领域真实在售的品牌机型与合理价格带，
- * 版本档位（青春版/标准版/套装版/旗舰版）只影响价格，不再写进营销标题；
- * 内部型号（如“小-1001”）仅用于保证库存条目唯一，展示层会去除。</p>
+ * <p>命名与定价按真实电商口径设计：每个类目放该领域真实在售的品牌机型与合理价格带，
+ * 且机型维度变化最快，保证相邻商品名称不同；版本档位（青春版/标准版/套装版/旗舰版）
+ * 只影响价格，不写进营销标题；内部型号（如“小-1001”）仅用于保证库存条目唯一，展示层会去除。</p>
  */
 public final class SeedMain {
 
@@ -46,61 +46,71 @@ public final class SeedMain {
                     new String[]{"智能手机", "5G 手机", "旗舰手机", "全面屏手机", "拍照手机"},
                     new String[][]{{"小米", "14 Pro"}, {"小米", "14 Ultra"}, {"华为", "Mate 60 Pro"},
                             {"华为", "Pura 70 Ultra"}, {"OPPO", "Find X7 Ultra"}, {"vivo", "X100 Pro"},
-                            {"三星", "Galaxy S24 Ultra"}, {"荣耀", "Magic6 Pro"}},
+                            {"三星", "Galaxy S24 Ultra"}, {"荣耀", "Magic6 Pro"}, {"一加", "12"},
+                            {"iQOO", "12 Pro"}, {"红米", "K70 Pro"}, {"真我", "GT5 Pro"}},
                     2299, 8999),
             new CatSpec("耳机",
                     new String[]{"蓝牙耳机", "降噪耳机", "头戴式耳机", "入耳式耳机", "真无线耳机"},
                     new String[][]{{"索尼", "WH-1000XM5"}, {"索尼", "WF-1000XM5"}, {"苹果", "AirPods Pro 2"},
                             {"华为", "FreeBuds Pro 3"}, {"漫步者", "NeoBuds Pro 2"}, {"Bose", "QuietComfort Ultra"},
-                            {"小米", "Buds 4 Pro"}, {"安克", "Soundcore Liberty 4"}},
+                            {"小米", "Buds 4 Pro"}, {"安克", "Soundcore Liberty 4"}, {"捷波朗", "Elite 10"},
+                            {"森海塞尔", "Momentum 4"}, {"索尼", "LinkBuds S"}, {"华为", "FreeBuds 5"}},
                     299, 2499),
             new CatSpec("键盘",
                     new String[]{"机械键盘", "无线键盘", "静音键盘", "办公键盘", "客制化键盘"},
                     new String[][]{{"罗技", "MX Mechanical"}, {"罗技", "G913 TKL"}, {"雷蛇", "BlackWidow V4"},
                             {"樱桃", "MX 3.0S"}, {"海盗船", "K70 RGB Pro"}, {"机械师", "K600"},
-                            {"斐尔可", "Majestouch 2"}, {"阿米洛", "V2 风信子"}},
+                            {"斐尔可", "Majestouch 2"}, {"阿米洛", "V2 风信子"}, {"罗技", "G Pro X TKL"},
+                            {"雷蛇", "Huntsman V2"}, {"艾石头", "FE87"}, {"利奥博德", "FC980M"}},
                     149, 1399),
             new CatSpec("鼠标",
                     new String[]{"无线鼠标", "游戏鼠标", "静音鼠标", "人体工学鼠标", "办公鼠标"},
                     new String[][]{{"罗技", "MX Master 3S"}, {"罗技", "G502 Hero"}, {"雷蛇", "DeathAdder V3"},
                             {"雷蛇", "Basilisk V3"}, {"微软", "Pro IntelliMouse"}, {"罗技", "G Pro X Superlight"},
-                            {"赛睿", "Rival 7"}, {"达尔优", "A950"}},
+                            {"赛睿", "Rival 7"}, {"达尔优", "A950"}, {"雷蛇", "Viper V3"},
+                            {"罗技", "MX Anywhere 3"}, {"卓威", "EC2-C"}, {"毒蝰", "终极版"}},
                     79, 999),
             new CatSpec("显示器",
                     new String[]{"电竞显示器", "曲面显示器", "护眼显示器", "便携显示器", "4K 显示器"},
                     new String[][]{{"戴尔", "U2723QE"}, {"LG", "27GP95R"}, {"AOC", "U27G3X"},
                             {"三星", "Odyssey G8"}, {"飞利浦", "27E1N5900"}, {"华硕", "ROG PG27AQN"},
-                            {"宏碁", "暗影骑士 XV275K"}, {"明基", "PD2705U"}},
+                            {"宏碁", "暗影骑士 XV275K"}, {"明基", "PD2705U"}, {"戴尔", "S2721DGF"},
+                            {"LG", "32GQ950"}, {"AOC", "Q27G3Z"}, {"微星", "MPG321UR"}},
                     899, 6499),
             new CatSpec("笔记本",
                     new String[]{"轻薄笔记本", "游戏笔记本", "商务笔记本", "二合一笔记本", "全能笔记本"},
                     new String[][]{{"联想", "ThinkPad X1 Carbon"}, {"联想", "拯救者 Y9000P"}, {"华为", "MateBook X Pro"},
                             {"戴尔", "XPS 15"}, {"苹果", "MacBook Pro 14"}, {"华硕", "灵耀 14"},
-                            {"惠普", "战 X"}, {"荣耀", "MagicBook Pro 16"}},
+                            {"惠普", "战 X"}, {"荣耀", "MagicBook Pro 16"}, {"联想", "小新 Pro 16"},
+                            {"戴尔", "游匣 G15"}, {"华为", "MateBook 14"}, {"华硕", "天选 5 Pro"}},
                     4499, 14999),
             new CatSpec("音箱",
                     new String[]{"蓝牙音箱", "桌面音箱", "便携音箱", "智能音箱", "多媒体音箱"},
                     new String[][]{{"哈曼卡顿", "琉璃 3"}, {"JBL", "Charge 5"}, {"索尼", "SRS-XB100"},
                             {"小米", "小爱音箱 Pro"}, {"漫步者", "R1700BT"}, {"天猫精灵", "方糖 2"},
-                            {"华为", "Sound X"}, {"Bose", "SoundLink Revolve"}},
+                            {"华为", "Sound X"}, {"Bose", "SoundLink Revolve"}, {"马歇尔", "Stanmore 3"},
+                            {"索尼", "SRS-XV500"}, {"惠威", "M200"}, {"漫步者", "S1000MKII"}},
                     129, 2299),
             new CatSpec("充电器",
                     new String[]{"氮化镓充电器", "快充充电器", "车载充电器", "多口充电器", "磁吸充电器"},
                     new String[][]{{"安克", "737 GaN"}, {"安克", "65W Nano 3"}, {"绿联", "100W GaN"},
                             {"倍思", "65W GaN"}, {"小米", "67W 快充"}, {"努比亚", "红魔 80W"},
-                            {"品胜", "30W 氮化镓"}, {"IDMIX", "140W 充电器"}},
+                            {"品胜", "30W 氮化镓"}, {"IDMIX", "140W 充电器"}, {"安克", "511 Nano"},
+                            {"绿联", "65W 智充"}, {"倍思", "100W"}, {"紫米", "30W"}},
                     39, 499),
             new CatSpec("摄像头",
                     new String[]{"网络摄像头", "高清摄像头", "直播摄像头", "会议摄像头", "4K 摄像头"},
                     new String[][]{{"罗技", "C920 Pro"}, {"罗技", "Brio 4K"}, {"雷蛇", "Kiyo Pro"},
                             {"雷蛇", "Kiyo X"}, {"海康威视", "DS-E12"}, {"奥尼", "A31"},
-                            {"明基", "ideaCam S1"}, {"安克", "PowerConf C200"}},
+                            {"明基", "ideaCam S1"}, {"安克", "PowerConf C200"}, {"罗技", "StreamCam"},
+                            {"雷蛇", "Kiyo Pro Ultra"}, {"海康威视", "C100"}, {"联想", "LC50"}},
                     149, 1999),
             new CatSpec("扫地机器人",
                     new String[]{"扫拖一体机器人", "智能扫地机器人", "自清洁机器人", "全自动机器人", "无线洗地机"},
                     new String[][]{{"石头", "G20"}, {"科沃斯", "T20 Pro"}, {"追觅", "X30 Ultra"},
                             {"小米", "全能 2 Pro"}, {"海尔", "全能 T20"}, {"美的", "W11"},
-                            {"云鲸", "J4"}, {"添可", "芙万 3.0"}},
+                            {"云鲸", "J4"}, {"添可", "芙万 3.0"}, {"石头", "P10"},
+                            {"科沃斯", "T10 OMNI"}, {"追觅", "L20 Ultra"}, {"云鲸", "J3"}},
                     1299, 5999),
     };
 
@@ -119,7 +129,7 @@ public final class SeedMain {
         System.out.printf("完成：写入 %d 条，耗时 %d ms%n", docs.size(), System.currentTimeMillis() - start);
     }
 
-    /** 各类目均衡生成：按 id 顺序在十个类目间均摊，组合维度不重复。 */
+    /** 各类目均衡生成：机型维度变化最快，相邻商品名不同，组合维度不重复。 */
     public static List<ProductDoc> generate(int count) {
         List<ProductDoc> docs = new ArrayList<>(count);
         int perCat = count / SPECS.length;
@@ -139,11 +149,11 @@ public final class SeedMain {
 
             for (int k = 0; k < target; k++) {
                 int code = k % total;
-                int vi = code % nVer; code /= nVer;
-                int si = code % nScene; code /= nScene;
-                int ai = code % nAttr; code /= nAttr;
+                int mi = code % nModels; code /= nModels;
                 int subi = code % nSub; code /= nSub;
-                int mi = code % nModels;
+                int ai = code % nAttr; code /= nAttr;
+                int si = code % nScene; code /= nScene;
+                int vi = code % nVer;
 
                 String brand = spec.models[mi][0];
                 String series = spec.models[mi][1];
