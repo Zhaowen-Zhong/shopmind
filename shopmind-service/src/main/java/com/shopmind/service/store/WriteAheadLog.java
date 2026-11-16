@@ -175,6 +175,8 @@ public final class WriteAheadLog implements AutoCloseable {
 
     /**
      * 崩溃恢复：读取 checkpoint 之后的全部完整 JSON 行，返回待回放文档。
+     * 容错口径：只解析以 '{' 开头的行；零填充、截断的半行或其它脏数据一律跳过，
+     * 单条解析失败不阻断整体启动，避免损坏尾部把整个服务卡死。
      */
     public List<ProductDoc> recoverPending() {
         synchronized (writeLock) {
@@ -194,9 +196,15 @@ public final class WriteAheadLog implements AutoCloseable {
                 }
                 String content = new String(buffer.array(), java.nio.charset.StandardCharsets.UTF_8);
                 List<ProductDoc> docs = new ArrayList<>();
-                for (String line : content.split("\n")) {
-                    if (!line.isBlank()) {
+                for (String rawLine : content.split("\n")) {
+                    String line = rawLine.trim();
+                    if (line.isEmpty() || line.charAt(0) != '{') {
+                        continue;
+                    }
+                    try {
                         docs.add(mapper.readValue(line, ProductDoc.class));
+                    } catch (IOException parseError) {
+                        // 跳过损坏/半行 JSON，继续回放其余记录
                     }
                 }
                 return docs;

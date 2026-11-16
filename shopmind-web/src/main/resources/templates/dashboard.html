@@ -67,7 +67,7 @@
             <tr><th>索引</th><th>有效向量</th><th>维度</th><th>层级/簇数</th><th>平均邻居</th><th>估算内存</th></tr>
             </thead>
             <tbody>
-            <tr th:each="entry : ${stats}" th:if="${entry.key != 'documents' and entry.key != 'gateway' and entry.key != 'bm25'}">
+            <tr th:each="entry : ${stats}" th:if="${entry.key == 'brute-force' or entry.key == 'ivf' or entry.key == 'hnsw'}">
                 <td><span class="tag" th:text="${entry.key}">hnsw</span></td>
                 <td th:text="${entry.value['size']}">0</td>
                 <td th:text="${entry.value['dimension']}">128</td>
