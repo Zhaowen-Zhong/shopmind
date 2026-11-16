@@ -2,22 +2,24 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- 商品卡片：v 为 ProductView（含价格、类目序号、可选相关度） -->
+<!-- 商品卡片：v 为 ProductView -->
 <article class="product-card" th:fragment="product-card(v)">
-    <a th:href="@{/guide(q=${v.title()})}" class="product-thumb"
-       th:classappend="'t-c' + ${v.categoryIndex()}">
+    <div class="product-thumb" th:classappend="'t-c' + ${v.categoryIndex()}">
+        <span class="thumb-ic" th:replace="~{fragments/icons :: cat-icon(${v.categoryIndex()})}"></span>
         <span class="cat-tag" th:text="${v.category()}">类目</span>
         <span class="rel-tag" th:if="${v.score() != null}"
               th:text="'相关度 ' + ${#numbers.formatPercent(v.score(), 1, 0)}">相关度</span>
-        <span th:text="${v.category().substring(0,1)}">类</span>
-    </a>
+    </div>
     <div class="product-body">
-        <h3 class="product-title clamp-2" th:text="${v.title()}">商品标题</h3>
-        <p class="product-desc clamp-2" th:text="${v.description()}">商品描述</p>
+        <h3 class="product-title clamp-2" th:text="${v.displayTitle()}">商品标题</h3>
+        <div class="point-row" th:unless="${v.sellingPoints().isEmpty()}">
+            <span class="point" th:each="p : ${v.sellingPoints()}" th:text="${p}">卖点</span>
+        </div>
         <div class="product-meta">
-            <span class="product-price"><span class="yuan">参考价 </span>
-                <span th:text="${v.price()}">¥--</span></span>
-            <span class="btn btn-ghost btn-sm">问导购</span>
+            <span class="product-price"><span class="yuan">参考价</span>
+                <b th:text="${v.price()}">¥--</b></span>
+            <a class="btn btn-primary btn-sm ask-btn"
+               th:href="@{/guide(q=${v.displayTitle()})}">问导购</a>
         </div>
     </div>
 </article>
@@ -25,9 +27,9 @@
 <!-- 分类入口卡片 -->
 <a class="category-card" th:fragment="category-card(name, count, index)"
    th:href="@{/products(category=${name})}">
-    <span class="tile" th:classappend="'t-c' + ${index}" th:text="${name.substring(0,1)}">类</span>
-    <h3 th:text="${name}">类目</h3>
-    <span class="cnt" th:text="${count} + ' 件商品'">0 件商品</span>
+    <span class="cat-ic" th:replace="~{fragments/icons :: cat-icon(${index})}"></span>
+    <span class="cat-name" th:text="${name}">类目</span>
+    <span class="cat-cnt" th:text="${count} + ' 件'">0 件</span>
 </a>
 
 </body>

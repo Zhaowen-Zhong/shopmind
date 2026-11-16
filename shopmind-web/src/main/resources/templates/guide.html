@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>智能导购 · ShopMind</title>
-    <link rel="stylesheet" th:href="@{/css/shopmind.css}">
+    <link rel="stylesheet" th:href="@{/css/shopmind.css(v=2)}">
 </head>
 <body>
 <header th:replace="~{fragments/layout :: storefront-header('guide')}"></header>
@@ -131,6 +131,12 @@
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { ask(); } });
     document.querySelectorAll('#suggest .chip').forEach(btn =>
         btn.addEventListener('click', () => ask(btn.textContent)));
+
+    // 从商品卡片“问导购”跳入时，自动发起提问
+    window.addEventListener('load', () => {
+        const initial = new URLSearchParams(window.location.search).get('q');
+        if (initial && initial.trim()) { ask(initial.trim()); }
+    });
 </script>
 </body>
 </html>

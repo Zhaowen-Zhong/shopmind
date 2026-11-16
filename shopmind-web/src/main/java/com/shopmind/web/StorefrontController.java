@@ -35,6 +35,7 @@ public class StorefrontController {
             "音箱", "充电器", "摄像头", "扫地机器人");
 
     private static final Pattern PRICE_PATTERN = Pattern.compile("参考价\\s*(\\d+)");
+    private static final Pattern MODEL_PATTERN = Pattern.compile("\\s*[A-Za-z\\u4e00-\\u9fa5]-\\d+\\s*$");
     private static final int PAGE_WINDOW = 5;
 
     private final KnowledgeBase knowledgeBase;
@@ -52,6 +53,8 @@ public class StorefrontController {
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("total", knowledgeBase.count());
+        model.addAttribute("totalDisplay",
+                String.format("%,d", knowledgeBase.count()) + "+");
         model.addAttribute("categories", CATEGORIES);
         model.addAttribute("dimension", dimension);
         model.addAttribute("p99", "3.45");
@@ -126,9 +129,35 @@ public class StorefrontController {
     /* ---------- 私有辅助 ---------- */
 
     private ProductView toView(ProductDoc doc, Double score) {
-        int index = CATEGORIES.indexOf(doc.category());
-        return new ProductView(doc.id(), doc.title(), doc.description(), doc.category(),
-                score, parsePrice(doc.description()), Math.max(0, index));
+        int index = Math.max(0, CATEGORIES.indexOf(doc.category()));
+        return new ProductView(doc.id(), stripModel(doc.title()), doc.description(),
+                doc.category(), extractPoints(doc.description()), score,
+                parsePrice(doc.description()), index);
+    }
+
+    /** 去掉标题末尾的内部型号（如“小-1001”），保留品牌 + 品类 + 版本。 */
+    private String stripModel(String title) {
+        if (title == null) {
+            return "";
+        }
+        return MODEL_PATTERN.matcher(title).replaceAll("").trim();
+    }
+
+    /** 从描述中提取差异化卖点（属性 / 场景），跳过品类、版本与固定话术。 */
+    private List<String> extractPoints(String description) {
+        List<String> points = new ArrayList<>();
+        if (description == null) {
+            return points;
+        }
+        String[] parts = description.split("，");
+        for (int i = 0; i < parts.length && points.size() < 3; i++) {
+            String part = parts[i].trim();
+            if (i < 2 || part.isBlank() || part.startsWith("参考价") || part.contains("保修")) {
+                continue;
+            }
+            points.add(part);
+        }
+        return points;
     }
 
     private String parsePrice(String description) {

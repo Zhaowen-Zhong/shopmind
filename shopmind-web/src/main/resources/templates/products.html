@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>商品 · ShopMind</title>
-    <link rel="stylesheet" th:href="@{/css/shopmind.css}">
+    <link rel="stylesheet" th:href="@{/css/shopmind.css(v=2)}">
 </head>
 <body>
 <header th:replace="~{fragments/layout :: storefront-header('products')}"></header>
@@ -67,5 +67,16 @@
 </main>
 
 <footer th:replace="~{fragments/layout :: storefront-footer}"></footer>
+
+<a class="float-assistant" th:href="@{/guide}" aria-label="智能导购">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.6 9.6 0 0 1-4.9-1.3L3 20l1.4-4A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/><path d="M9 11h.01M15 11h.01M9.5 14.5a3.5 3.5 0 0 0 5 0"/></svg>
+</a>
+<script>
+    const floatBtn = document.querySelector('.float-assistant');
+    const footer = document.querySelector('.site-footer');
+    new IntersectionObserver(entries => entries.forEach(e =>
+        floatBtn.classList.toggle('is-hidden', e.isIntersecting)),
+        {threshold: 0.05}).observe(footer);
+</script>
 </body>
 </html>
