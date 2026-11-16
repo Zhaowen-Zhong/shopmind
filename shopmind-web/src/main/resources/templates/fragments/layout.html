@@ -63,6 +63,48 @@
     </div>
 </footer>
 
+<!-- ============ 运营后台 左侧导航（专业控制台） ============ -->
+<aside class="admin-sidebar" th:fragment="admin-sidebar(active)">
+    <a class="as-brand" th:href="@{/admin/dashboard}">
+        <span class="mark">
+            <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
+                <path d="M32 14 L35.5 28.5 L50 32 L35.5 35.5 L32 50 L28.5 35.5 L14 32 L28.5 28.5 Z" fill="#fff"/>
+                <circle cx="47" cy="47" r="4.5" fill="#99f6e4"/>
+            </svg>
+        </span>
+        <span>
+            <span class="name">ShopMind 控制台</span><br>
+            <span class="sub">运营管理平台</span>
+        </span>
+    </a>
+
+    <nav class="as-nav">
+        <span class="as-section-label">运营模块</span>
+        <a th:href="@{/admin/dashboard}" th:classappend="${active == 'dashboard'} ? 'active'">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span>
+            <span><span class="t">运营总览</span><span class="d">健康状态与性能基线</span></span>
+        </a>
+        <a th:href="@{/admin/console}" th:classappend="${active == 'console'} ? 'active'">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+            <span><span class="t">检索调试</span><span class="d">三索引对照与调参</span></span>
+        </a>
+        <a th:href="@{/admin/kb}" th:classappend="${active == 'kb'} ? 'active'">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M18 3v15"/></svg></span>
+            <span><span class="t">知识库</span><span class="d">商品文档管理</span></span>
+        </a>
+    </nav>
+
+    <div class="as-side-widget">
+        <div class="as-kv"><span>运行环境</span><b>JDK 21</b></div>
+        <div class="as-kv"><span>向量维度</span><b>384</b></div>
+        <div class="as-kv"><span>版本</span><b>v1.0.0</b></div>
+        <a class="as-front-link" th:href="@{/}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            返回客户前台
+        </a>
+    </div>
+</aside>
+
 <!-- ============ 运营后台 顶部导航 ============ -->
 <header class="admin-header" th:fragment="admin-header(active)">
     <div class="container bar">

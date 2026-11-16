@@ -8,23 +8,56 @@
     <link rel="stylesheet" th:href="@{/css/shopmind.css(v=6)}">
 </head>
 <body>
-<header th:replace="~{fragments/layout :: admin-header('kb')}"></header>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: admin-sidebar('kb')}"></aside>
 
-<main class="admin-main">
-    <div class="container">
-        <h1 class="admin-title">商品知识库管理</h1>
-        <p class="admin-sub">录入、查看与删除商品文档，写入联动三套索引与 BM25</p>
+    <main class="admin-content">
+        <div class="page-head">
+            <h1>商品知识库管理</h1>
+            <div class="sub">录入、查看与删除商品文档，写入自动联动三套索引与 BM25</div>
+        </div>
+
+        <!-- 写入链路图解 -->
+        <div class="section-head" style="margin-bottom:14px;">
+            <h2 style="font-size:16px;">一条商品如何被写入</h2>
+        </div>
+        <div class="pipeline" style="margin-bottom:24px;">
+            <div class="pipe-node">
+                <div class="pn-t">接收文档</div>
+                <div class="pn-d">校验标题、描述与类目，生成 384 维语义向量</div>
+            </div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-node">
+                <div class="pn-t">WAL + 内存增量</div>
+                <div class="pn-d">顺序写日志并进入内存，即刻可被检索</div>
+            </div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-node">
+                <div class="pn-t">后台落盘</div>
+                <div class="pn-d">单线程按序写入 H2 与三套索引，批量提交</div>
+            </div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-node">
+                <div class="pn-t">对外可见</div>
+                <div class="pn-d">检索结果合并内存增量，删除项不再返回</div>
+            </div>
+        </div>
+
+        <div class="info-callout">
+            <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z"/></svg></span>
+            <p>当前为 delta 高速模式：崩溃时最多丢失最后一个刷盘间隔（约 200ms）的记录，重启后由 WAL 自动恢复。若业务要求每条都强持久化，可在配置中将 write.mode 改为 sync，代价是写入延迟上升。</p>
+        </div>
 
         <div class="panel">
             <h3>录入商品文档</h3>
             <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-                <div class="field"><label for="title">标题</label><input class="input" id="title" style="min-width:220px;" placeholder="例如：小米手机 13"></div>
-                <div class="field"><label for="desc">描述</label><input class="input" id="desc" style="min-width:300px;" placeholder="例如：旗舰手机，骁龙处理器，5000mAh"></div>
+                <div class="field"><label for="title">标题（必填）</label><input class="input" id="title" style="min-width:220px;" placeholder="例如：小米手机 13"></div>
+                <div class="field"><label for="desc">描述</label><input class="input" id="desc" style="min-width:280px;" placeholder="例如：旗舰手机，骁龙处理器，5000mAh"></div>
                 <div class="field"><label for="category">类目</label><input class="input" id="category" style="width:130px;" placeholder="例如：手机"></div>
                 <div class="field"><button class="btn btn-primary" onclick="addDoc()">入库并建索引</button></div>
             </div>
             <p class="muted" id="result" style="font-size:12.5px;margin-top:14px;margin-bottom:0;">
-                入库走 WAL + 内存增量，后台异步落盘并更新索引，返回端到端耗时（对应 NFR-06）。
+                入库走 WAL + 内存增量，返回端到端耗时（对应 NFR-06）；索引更新由后台完成，无需手动重建。
             </p>
         </div>
 
@@ -50,10 +83,8 @@
                 第 <span th:text="${page} + 1">1</span> 页，每页 <span th:text="${size}">20</span> 条；删除采用墓碑标记，检索不会返回已删除文档。
             </p>
         </div>
-    </div>
-</main>
-
-<footer th:replace="~{fragments/layout :: admin-footer}"></footer>
+    </main>
+</div>
 
 <script>
     async function addDoc() {
@@ -67,7 +98,7 @@
         });
         const data = await response.json();
         document.getElementById('result').textContent =
-            '入库成功：id=' + data.id + '，端到端耗时 ' + data.elapsedMicros + ' μs。刷新查看列表。';
+            '入库成功：id=' + data.id + '，端到端耗时 ' + data.elapsedMicros + ' μs。刷新可查看列表。';
     }
 
     async function removeDoc(id) {

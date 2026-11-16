@@ -3,26 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>检索调试台 · ShopMind 控制台</title>
+    <title>检索调试 · ShopMind 控制台</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <link rel="stylesheet" th:href="@{/css/shopmind.css(v=6)}">
 </head>
 <body>
-<header th:replace="~{fragments/layout :: admin-header('console')}"></header>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: admin-sidebar('console')}"></aside>
 
-<main class="admin-main">
-    <div class="container">
-        <h1 class="admin-title">检索调试台</h1>
-        <p class="admin-sub">同一查询在暴力 / IVF / HNSW 三索引上并排执行，对照耗时与召回差异</p>
+    <main class="admin-content">
+        <div class="page-head">
+            <h1>检索调试</h1>
+            <div class="sub">同一查询在暴力 / IVF / HNSW 三索引上并排执行，对照耗时、命中与召回差异</div>
+        </div>
+
+        <!-- 参数释义 -->
+        <div class="info-callout">
+            <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span>
+            <p>
+                <b>Top-K</b>：返回最相关的前 K 条结果。<br>
+                <b>efSearch</b>：HNSW 查询时的搜索宽度，越大召回越高、耗时也越长，是“精度—速度”的调节旋钮。<br>
+                <b>混合权重 alpha</b>：语义向量与关键词（BM25）的融合比例，越接近 1 越偏向语义理解，越小越偏向字面匹配。<br>
+                结果以暴力检索为精确基准，“相对基准未命中”即近似索引漏掉的条数，用于评估召回质量。
+            </p>
+        </div>
+
+        <!-- 预设方案 -->
+        <div class="preset-row">
+            <button class="preset-btn" type="button" onclick="applyPreset(50,0.8)">速度优先（ef50）</button>
+            <button class="preset-btn" type="button" onclick="applyPreset(100,0.8)">均衡推荐（ef100）</button>
+            <button class="preset-btn" type="button" onclick="applyPreset(400,0.9)">高精度（ef400）</button>
+            <button class="preset-btn" type="button" onclick="applyPreset(1000,1)">极致召回（ef1000）</button>
+        </div>
 
         <div class="panel">
             <div class="row" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
-                <div class="field" style="flex:1;min-width:260px;">
+                <div class="field" style="flex:1;min-width:240px;">
                     <label for="query">查询文本</label>
                     <input class="input" id="query" value="降噪蓝牙耳机">
                 </div>
                 <div class="field"><label for="topk">Top-K</label><input class="input" id="topk" type="number" value="10" min="1" max="50" style="width:100px;"></div>
-                <div class="field"><label for="ef">efSearch</label><input class="input" id="ef" type="number" value="100" min="1" max="500" style="width:100px;"></div>
+                <div class="field"><label for="ef">efSearch</label><input class="input" id="ef" type="number" value="100" min="1" max="2000" style="width:110px;"></div>
                 <div class="field">
                     <label for="alpha">混合权重 <b id="alphaValue">0.8</b></label>
                     <input id="alpha" type="range" min="0.4" max="1" step="0.1" value="0.8"
@@ -37,12 +58,16 @@
             <div class="col-panel" id="col-ivf"><h4>IVF 倒排聚类</h4><div class="muted" style="font-size:12.5px;margin:8px 0;">等待检索…</div></div>
             <div class="col-panel" id="col-hnsw"><h4>HNSW 分层近邻图</h4><div class="muted" style="font-size:12.5px;margin:8px 0;">等待检索…</div></div>
         </div>
-    </div>
-</main>
-
-<footer th:replace="~{fragments/layout :: admin-footer}"></footer>
+    </main>
+</div>
 
 <script>
+    function applyPreset(ef, alpha) {
+        document.getElementById('ef').value = ef;
+        document.getElementById('alpha').value = alpha;
+        document.getElementById('alphaValue').textContent = alpha;
+    }
+
     async function runSearch() {
         const query = document.getElementById('query').value.trim();
         if (!query) { alert('请输入查询文本'); return; }

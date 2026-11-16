@@ -101,13 +101,16 @@ public final class RetrievalService {
             return;
         }
         List<ProductDoc> pendingDocs = wal.recoverPending();
-        if (pendingDocs.isEmpty()) {
-            return;
+        if (!pendingDocs.isEmpty()) {
+            log.info("WAL 恢复回放记录数={}", pendingDocs.size());
+            knowledgeBase.saveAll(pendingDocs);
+            wal.force();
         }
-        log.info("WAL 恢复回放记录数={}", pendingDocs.size());
-        knowledgeBase.saveAll(pendingDocs);
-        wal.force();
+        // 即便没有可回放记录，也把 WAL 推进到当前末尾并尝试截断：
+        // 历次强杀可能残留零填充/半行/脏数据，recoverPending 已跳过它们，
+        // 若不推进 checkpoint，pendingBytes 会长期偏大、误导监控。
         wal.checkpointAll();
+        wal.truncateApplied();
     }
 
     /** 从数据库全量重建三套索引。重建期间对外可见的仍是旧索引，避免读到空索引。 */

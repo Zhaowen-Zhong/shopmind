@@ -566,3 +566,102 @@ table.data-table tr:last-child td { border-bottom: none; }
     .msg { max-width: 92%; }
 }
 
+/* =====================================================================
+   运营控制台（专业版：侧边导航 + 状态释义 + 工程基线）
+   ===================================================================== */
+.admin-shell { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+
+/* 侧边导航 */
+.admin-sidebar {
+    background: linear-gradient(180deg, #0b2b28, #081f1e); color: #cbd5e1;
+    padding: 24px 16px; position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column;
+}
+.as-brand { display: flex; align-items: center; gap: 11px; padding: 2px 8px 20px; border-bottom: 1px solid rgba(255,255,255,.09); }
+.as-brand .mark { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, var(--brand), var(--brand-deep)); flex-shrink: 0; }
+.as-brand .name { font-size: 15.5px; font-weight: 800; color: #fff; }
+.as-brand .sub { font-size: 11px; color: #8aa3a0; margin-top: 2px; }
+.as-nav { margin-top: 20px; display: flex; flex-direction: column; gap: 4px; }
+.as-nav .as-section-label { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: #6f8a87; padding: 0 10px 8px; }
+.as-nav a { display: flex; gap: 12px; align-items: flex-start; padding: 11px 10px; border-radius: 10px; border: 1px solid transparent; transition: background .15s; }
+.as-nav a .ic { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; color: #5eead4; }
+.as-nav a .t { font-size: 13.5px; font-weight: 700; color: #e3edeb; }
+.as-nav a .d { font-size: 11px; color: #8aa3a0; margin-top: 2px; line-height: 1.5; }
+.as-nav a:hover { background: rgba(255,255,255,.06); }
+.as-nav a.active { background: linear-gradient(135deg, rgba(13,148,136,.32), rgba(13,148,136,.14)); border-color: rgba(94,234,212,.28); }
+.as-nav a.active .t { color: #a7f3d0; }
+.as-side-widget { margin-top: auto; border-top: 1px solid rgba(255,255,255,.09); padding-top: 16px; }
+.as-kv { display: flex; justify-content: space-between; font-size: 11.5px; padding: 4px 10px; color: #9fb5b2; }
+.as-kv b { color: #d7e4e1; font-family: var(--font-mono); font-weight: 600; }
+.as-front-link { display: flex; align-items: center; gap: 8px; margin: 14px 10px 0; font-size: 12.5px; color: #99f6e4; }
+
+/* 内容区 */
+.admin-content { padding: 32px 36px 60px; min-width: 0; }
+.page-head { margin-bottom: 24px; }
+.page-head h1 { font-size: 24px; }
+.page-head .sub { color: var(--muted); font-size: 13.5px; margin-top: 6px; }
+
+/* 上手指引 */
+.onboarding { background: linear-gradient(135deg, #effdfa, #f7fdfb); border: 1px solid var(--brand-line); border-radius: var(--r-lg); padding: 24px 26px; margin-bottom: 24px; }
+.onboarding h2 { font-size: 17px; }
+.onboarding .lead-d { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 20px; }
+.step { display: flex; gap: 13px; }
+.step .n { width: 30px; height: 30px; border-radius: 9px; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+.step .t { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.step .d { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.6; }
+
+/* 健康状态卡 */
+.status-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.status-card { background: #fff; border: 1px solid var(--line); border-radius: var(--r-md); padding: 20px; }
+.status-card .top { display: flex; align-items: center; gap: 9px; }
+.status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 3px rgba(13,148,136,.15); }
+.status-dot.warn { background: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,.18); }
+.status-card .title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.status-card .big { font-size: 25px; font-weight: 800; color: var(--brand-dark); margin-top: 14px; }
+.status-card .big .unit { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.status-card .explain { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.65; }
+
+/* 架构与关键设计 */
+.arch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.arch-card { border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; background: #fff; }
+.arch-card .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand-dark); }
+.arch-card h4 { font-size: 13.5px; margin-top: 12px; }
+.arch-card p { font-size: 12px; color: var(--muted); margin-top: 7px; line-height: 1.65; }
+.arch-card .term { font-family: var(--font-mono); font-size: 10px; color: #7a8b99; margin-top: 9px; display: block; }
+
+/* NFR 验收基线表 */
+.nfr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.nfr-table th, .nfr-table td { padding: 13px 16px; text-align: left; border-bottom: 1px solid var(--line-soft); }
+.nfr-table th { background: #fafbfd; font-size: 11.5px; color: var(--muted); letter-spacing: .05em; }
+.nfr-table .mono { font-family: var(--font-mono); font-weight: 700; color: var(--ink); }
+.nfr-table .pass { color: var(--brand-dark); background: var(--brand-soft); border: 1px solid var(--brand-line); padding: 3px 10px; border-radius: var(--r-pill); font-size: 11px; font-weight: 700; white-space: nowrap; }
+
+/* 信息说明条 */
+.info-callout { display: flex; gap: 12px; background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: var(--r-sm); padding: 15px 18px; margin-bottom: 18px; }
+.info-callout .ic { color: var(--brand); flex-shrink: 0; margin-top: 2px; }
+.info-callout p { font-size: 12.5px; color: var(--ink-2); line-height: 1.7; margin: 0; }
+
+/* 写入链路图 */
+.pipeline { display: flex; align-items: stretch; }
+.pipe-node { flex: 1; min-width: 120px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; text-align: center; }
+.pipe-node .pn-t { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.pipe-node .pn-d { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.55; }
+.pipe-arrow { display: flex; align-items: center; padding: 0 7px; color: var(--brand); font-size: 18px; }
+
+/* 预设按钮 */
+.preset-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.preset-btn { padding: 7px 15px; border-radius: var(--r-pill); border: 1px solid var(--line); background: #fff; font-size: 12px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+.preset-btn:hover { border-color: var(--brand); color: var(--brand-dark); }
+
+@media (max-width: 1100px) { .arch-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 920px) {
+    .admin-shell { grid-template-columns: 1fr; }
+    .admin-sidebar { position: static; height: auto; }
+    .as-nav { flex-direction: row; flex-wrap: wrap; }
+    .as-side-widget { margin-top: 18px; }
+    .status-grid, .steps { grid-template-columns: 1fr; }
+    .pipeline { flex-direction: column; }
+    .pipe-arrow { transform: rotate(90deg); padding: 6px 0; justify-content: center; }
+}
+
