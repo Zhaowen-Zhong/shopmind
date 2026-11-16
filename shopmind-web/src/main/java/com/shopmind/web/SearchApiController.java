@@ -20,9 +20,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -150,12 +152,23 @@ public class SearchApiController {
         streamExecutor.submit(() -> {
             try {
                 long start = System.nanoTime();
-                SearchParams params = new SearchParams(5, SearchParams.DEFAULT_EF_SEARCH, 8);
+                // 取较宽候选，再做类目过滤与同名去重，收敛到 5 个
+                SearchParams params = new SearchParams(25, SearchParams.DEFAULT_EF_SEARCH, 8);
                 SearchOutcome outcome = retrievalService.search(IndexKind.HNSW, q, params, 0.8);
-                List<String> sentences = composeAnswer(q, outcome);
-                for (int i = 0; i < sentences.size(); i++) {
+                List<Neighbor> curated = curateHits(q, outcome);
+
+                // 第一阶段：智能思考（推理过程），用 think 事件单独推送
+                List<String> thinking = buildThinking(q, curated);
+                for (String line : thinking) {
+                    emitter.send(SseEmitter.event().name("think")
+                            .data(line, MediaType.TEXT_PLAIN));
+                    Thread.sleep(24);
+                }
+                // 第二阶段：正式回答（客户视角的简洁结论）
+                List<String> answer = buildAnswer(q, curated);
+                for (String line : answer) {
                     emitter.send(SseEmitter.event().name("chunk")
-                            .data(sentences.get(i), MediaType.TEXT_PLAIN));
+                            .data(line, MediaType.TEXT_PLAIN));
                     Thread.sleep(30);
                 }
                 double latencyMicros = (System.nanoTime() - start) / 1000.0;
@@ -171,55 +184,101 @@ public class SearchApiController {
         return emitter;
     }
 
-    private List<String> composeAnswer(String query, SearchOutcome outcome) {
-        List<String> parts = new ArrayList<>();
-        List<Neighbor> hits = outcome.hits();
+    /** 智能思考：需求理解、筛选思路与逐商品对照的推理过程（前端折叠展示）。 */
+    private List<String> buildThinking(String query, List<Neighbor> hits) {
+        List<String> lines = new ArrayList<>();
         if (hits.isEmpty()) {
-            parts.add("抱歉，我暂时没找到和「" + query + "」对得上的商品。");
-            parts.add("你可以换个说法，比如带上具体品类或使用场景，我再帮你找找。");
-            return parts;
+            return lines;
         }
-
-        // —— 第一步：需求理解（把用户的话拆成可核对的需求点）——
         List<String> needs = detectNeeds(query);
         String category = detectCategory(query);
-        parts.add("好的，我先帮你拆一下需求。");
+
+        lines.add("先拆解需求。");
         if (category != null && !needs.isEmpty()) {
-            parts.add("我理解你想找的是「" + category + "」，主要看重：" + String.join("、", needs) + "。");
+            lines.add("用户想找「" + category + "」，看重：" + String.join("、", needs) + "。");
         } else if (category != null) {
-            parts.add("我理解你想找的是「" + category + "」，我会按整体匹配度帮你挑。");
+            lines.add("用户想找「" + category + "」，未指定具体偏好，按整体匹配度筛选。");
         } else if (!needs.isEmpty()) {
-            parts.add("我理解你主要看重：" + String.join("、", needs) + "。");
+            lines.add("用户主要看重：" + String.join("、", needs) + "。");
         } else {
-            parts.add("我会用语义相关度结合关键词匹配，帮你挑整体最契合的几款。");
+            lines.add("用户未指定具体偏好，按语义相关度与关键词匹配综合筛选。");
         }
+        lines.add("筛选思路：向量语义检索理解意图，关键词匹配校正，再按类目过滤、同型号去重，最后核对卖点。");
 
-        // —— 第二步：说明筛选思路 ——
-        parts.add("筛选思路：先用向量语义检索理解你的意图，再用 BM25 关键词匹配校正，最后核对每件商品的卖点是否贴合上面的需求。");
-
-        // —— 第三步：逐商品给出理由（结合该商品的真实卖点）——
-        parts.add("下面是我对比后的结果：");
         for (int i = 0; i < hits.size(); i++) {
             Neighbor hit = hits.get(i);
             ProductDoc doc = retrievalService.findDocument(hit.docId()).orElse(null);
-            String name = doc == null ? "商品 " + hit.docId() : friendlyTitle(doc.title());
             StringBuilder line = new StringBuilder(String.format(
-                    "%d. %s（匹配度约 %.0f%%）", i + 1, name, hit.score() * 100));
+                    "对照候选 %d（匹配度 %.0f%%）", i + 1, hit.score() * 100));
             if (doc != null) {
                 String[] points = docPoints(doc.description());
                 if (points.length > 0) {
-                    line.append("——它").append(String.join("、", points));
+                    line.append("：").append(String.join("、", points));
                     String matched = firstMatch(points, needs);
                     if (matched != null) {
-                        line.append("，正好对应你看重的「").append(matched).append("」");
+                        line.append("，命中需求「").append(matched).append("」");
                     }
                 }
             }
             line.append("。");
-            parts.add(line.toString());
+            lines.add(line.toString());
         }
-        parts.add("如果你告诉我预算或更在意的点，我可以再帮你缩小范围。");
-        return parts;
+        return lines;
+    }
+
+    /** 正式回答：客户视角的简洁结论。 */
+    private List<String> buildAnswer(String query, List<Neighbor> hits) {
+        List<String> lines = new ArrayList<>();
+        if (hits.isEmpty()) {
+            lines.add("抱歉，我暂时没找到和「" + query + "」对得上的商品。");
+            lines.add("你可以换个说法，比如带上具体品类或使用场景，我再帮你找找。");
+            return lines;
+        }
+        lines.add("为你挑了这几款，按和你需求的匹配度排序：");
+        for (int i = 0; i < hits.size(); i++) {
+            Neighbor hit = hits.get(i);
+            ProductDoc doc = retrievalService.findDocument(hit.docId()).orElse(null);
+            String name = doc == null ? "商品 " + hit.docId() : friendlyTitle(doc.title());
+            lines.add(String.format("%d. %s（匹配度约 %.0f%%）", i + 1, name, hit.score() * 100));
+        }
+        lines.add("其中第 1 款最贴合你的需求。告诉我预算或更在意的点，我可以再帮你缩小范围。");
+        return lines;
+    }
+
+    /**
+     * 候选收敛：当问句显式提到类目时做元数据过滤，并按友好名称去除同型号重复项，
+     * 最多保留 5 个；若过滤后为空则回退为仅去重，保证一定有结果。
+     */
+    private List<Neighbor> curateHits(String query, SearchOutcome outcome) {
+        String category = detectCategory(query);
+        Set<String> seen = new HashSet<>();
+        List<Neighbor> curated = new ArrayList<>();
+        for (Neighbor hit : outcome.hits()) {
+            ProductDoc doc = retrievalService.findDocument(hit.docId()).orElse(null);
+            if (category != null && (doc == null || !category.equals(doc.category()))) {
+                continue;
+            }
+            String name = doc == null ? "id" + hit.docId() : friendlyTitle(doc.title());
+            if (seen.add(name)) {
+                curated.add(hit);
+                if (curated.size() >= 5) {
+                    break;
+                }
+            }
+        }
+        if (curated.isEmpty()) {
+            for (Neighbor hit : outcome.hits()) {
+                ProductDoc doc = retrievalService.findDocument(hit.docId()).orElse(null);
+                String name = doc == null ? "id" + hit.docId() : friendlyTitle(doc.title());
+                if (seen.add(name)) {
+                    curated.add(hit);
+                    if (curated.size() >= 5) {
+                        break;
+                    }
+                }
+            }
+        }
+        return curated;
     }
 
     /** 从问句中识别属性 / 场景需求，返回自然语言短语。 */
