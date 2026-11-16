@@ -55,6 +55,13 @@
 
     function scrollBottom() { chat.scrollTop = chat.scrollHeight; }
 
+    // 把微秒换算成人类友好的单位，柔性展示
+    function humanTime(us) {
+        if (us >= 100000) { return (us / 1000000).toFixed(2) + ' 秒'; }
+        if (us >= 1000) { return Math.round(us / 1000) + ' 毫秒'; }
+        return Math.round(us) + ' 微秒';
+    }
+
     function addMessage(role, text) {
         const msg = document.createElement('div');
         msg.className = 'msg ' + role;
@@ -112,7 +119,10 @@
             const typing = document.getElementById('typing-msg');
             if (typing) { typing.remove(); }
             if (!botBubble) { botBubble = addMessage('bot', ''); }
-            botBubble.textContent += '\n（本次检索到回答结束耗时 ' + Math.round(payload.latencyMicros) + ' μs）';
+            const note = document.createElement('div');
+            note.className = 'latency-note';
+            note.textContent = '本次回答用时 ' + humanTime(payload.latencyMicros);
+            botBubble.parentElement.appendChild(note);
             source.close();
             busy = false;
             scrollBottom();

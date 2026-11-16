@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 /**
  * 面向页面的 REST 接口与流式导购。
@@ -39,6 +40,9 @@ public class SearchApiController {
     private final RetrievalService retrievalService;
     private final GatewayServer gatewayServer;
     private final ExecutorService streamExecutor = Executors.newVirtualThreadPerTaskExecutor();
+
+    private static final Pattern INTERNAL_CODE =
+            Pattern.compile("\\s*[A-Za-z\\u4e00-\\u9fa5]-\\d+\\s*$");
 
     public SearchApiController(RetrievalService retrievalService, GatewayServer gatewayServer) {
         this.retrievalService = retrievalService;
@@ -154,19 +158,29 @@ public class SearchApiController {
         List<String> parts = new ArrayList<>();
         List<Neighbor> hits = outcome.hits();
         if (hits.isEmpty()) {
-            parts.add("没有在知识库中找到与「" + query + "」相关的商品。");
-            parts.add("建议：换用更具体的品类词，或先在知识库中录入对应商品。");
+            parts.add("抱歉，我暂时没找到和「" + query + "」对得上的商品。");
+            parts.add("你可以换个说法，比如带上具体品类或使用场景，我再帮你找找。");
             return parts;
         }
-        parts.add("围绕「" + query + "」为你找到 " + hits.size() + " 件相关商品。");
+        parts.add("好的，我帮你看了下「" + query + "」，下面这几款比较值得考虑：");
         for (int i = 0; i < hits.size(); i++) {
             Neighbor hit = hits.get(i);
-            String title = retrievalService.titleOf(hit.docId());
-            parts.add(String.format("%d. %s（相关度 %.0f%%）。", i + 1,
-                    title.isEmpty() ? "文档 " + hit.docId() : title, hit.score() * 100));
+            String name = friendlyTitle(retrievalService.titleOf(hit.docId()));
+            if (name.isEmpty()) {
+                name = "商品 " + hit.docId();
+            }
+            parts.add(String.format("%d. %s，和你的需求匹配度约 %.0f%%。", i + 1, name, hit.score() * 100));
         }
-        parts.add("以上结果由 HNSW 向量检索与 BM25 关键词检索混合打分得到，可按相关度逐条查看详情。");
+        parts.add("如果你告诉我预算或更在意的点（比如续航、降噪、轻薄），我可以再帮你缩小范围。");
         return parts;
+    }
+
+    /** 去掉标题末尾的内部型号，只保留品牌 + 系列的营销名称。 */
+    private String friendlyTitle(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        return INTERNAL_CODE.matcher(raw).replaceAll("").trim();
     }
 
     private Map<String, Object> describe(SearchOutcome outcome) {
