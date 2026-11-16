@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>商品 · ShopMind</title>
+    <link rel="stylesheet" th:href="@{/css/shopmind.css}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: storefront-header('products')}"></header>
+
+<main class="section" style="padding-top:34px;">
+    <div class="container">
+        <div class="section-head" style="margin-bottom:18px;">
+            <div>
+                <h2>
+                    <span th:if="${q != null and !q.isEmpty()}">搜索：<span th:text="${q}">查询</span></span>
+                    <span th:unless="${q != null and !q.isEmpty()}">
+                        <span th:if="${category != null and !category.isEmpty()}" th:text="${category}">类目</span>
+                        <span th:unless="${category != null and !category.isEmpty()}">全部商品</span>
+                    </span>
+                </h2>
+                <div class="sub">
+                    <span th:if="${searchMode}">向量语义 + 关键词混合检索，按相关度排序，共 <b th:text="${products.size()}">0</b> 条结果</span>
+                    <span th:unless="${searchMode}">共 <b th:text="${total}">0</b> 件商品，按上架顺序展示</span>
+                </div>
+            </div>
+            <form th:action="@{/products}" method="get" style="display:flex;gap:8px;min-width:300px;">
+                <input class="input" type="text" name="q" placeholder="在商品中搜索…">
+                <button class="btn btn-primary btn-sm" type="submit">搜索</button>
+            </form>
+        </div>
+
+        <!-- 分类筛选 -->
+        <div class="filter-bar">
+            <span class="label">类目</span>
+            <a class="chip" th:classappend="${category == null or category.isEmpty()} ? 'active'"
+               th:href="@{/products}">全部</a>
+            <a th:each="c : ${categories}" class="chip"
+               th:classappend="${category == c} ? 'active'"
+               th:href="@{/products(category=${c})}" th:text="${c}">类目</a>
+        </div>
+
+        <!-- 商品网格 -->
+        <div th:if="${products.isEmpty()}" class="panel empty-state">
+            没有找到符合条件的商品。<br>
+            试试更换关键词，或<a th:href="@{/products}">浏览全部商品</a>，也可以让<a th:href="@{/guide}">智能导购</a>帮你挑。
+        </div>
+        <div th:unless="${products.isEmpty()}" class="product-grid">
+            <th:block th:each="v : ${products}">
+                <th:block th:replace="~{fragments/components :: product-card(${v})}"></th:block>
+            </th:block>
+        </div>
+
+        <!-- 分页（仅浏览模式） -->
+        <nav class="pagination" th:unless="${searchMode}">
+            <a th:if="${page > 0}"
+               th:href="@{/products(category=${category}, page=${page - 1}, size=${size})}">上一页</a>
+            <a th:each="n : ${pageNumbers}"
+               th:classappend="${n - 1 == page} ? 'current'"
+               th:href="@{/products(category=${category}, page=${n - 1}, size=${size})}"
+               th:text="${n}">1</a>
+            <a th:if="${page + 1 < totalPages}"
+               th:href="@{/products(category=${category}, page=${page + 1}, size=${size})}">下一页</a>
+        </nav>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: storefront-footer}"></footer>
+</body>
+</html>

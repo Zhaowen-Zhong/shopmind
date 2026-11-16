@@ -143,6 +143,33 @@ public final class KnowledgeBase implements AutoCloseable {
         }
     }
 
+    /** 按类目分页查询，供商业前台按分类浏览商品。 */
+    public synchronized List<ProductDoc> findByCategory(String category, int offset, int limit) {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "SELECT id, title, description, category FROM product WHERE category = ? ORDER BY id LIMIT ? OFFSET ?")) {
+            ps.setString(1, category);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
+            return collect(ps);
+        } catch (SQLException e) {
+            throw new IllegalStateException("类目查询失败: " + category, e);
+        }
+    }
+
+    /** 统计某类目下的商品数，配合分页使用。 */
+    public synchronized long countByCategory(String category) {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "SELECT COUNT(*) FROM product WHERE category = ?")) {
+            ps.setString(1, category);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getLong(1);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("类目计数失败: " + category, e);
+        }
+    }
+
     public synchronized List<ProductDoc> findAll() {
         try (PreparedStatement ps = connection.prepareStatement(
                 "SELECT id, title, description, category FROM product ORDER BY id")) {

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>知识库 · ShopMind 控制台</title>
+    <link rel="stylesheet" th:href="@{/css/shopmind.css}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header('kb')}"></header>
+
+<main class="admin-main">
+    <div class="container">
+        <h1 class="admin-title">商品知识库管理</h1>
+        <p class="admin-sub">录入、查看与删除商品文档，写入联动三套索引与 BM25</p>
+
+        <div class="panel">
+            <h3>录入商品文档</h3>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+                <div class="field"><label for="title">标题</label><input class="input" id="title" style="min-width:220px;" placeholder="例如：小米手机 13"></div>
+                <div class="field"><label for="desc">描述</label><input class="input" id="desc" style="min-width:300px;" placeholder="例如：旗舰手机，骁龙处理器，5000mAh"></div>
+                <div class="field"><label for="category">类目</label><input class="input" id="category" style="width:130px;" placeholder="例如：手机"></div>
+                <div class="field"><button class="btn btn-primary" onclick="addDoc()">入库并建索引</button></div>
+            </div>
+            <p class="muted" id="result" style="font-size:12.5px;margin-top:14px;margin-bottom:0;">
+                入库走 WAL + 内存增量，后台异步落盘并更新索引，返回端到端耗时（对应 NFR-06）。
+            </p>
+        </div>
+
+        <div class="panel">
+            <h3>现有文档（共 <span th:text="${total}">0</span> 条）</h3>
+            <table class="data-table">
+                <thead><tr><th style="width:70px">ID</th><th>标题</th><th>描述</th><th style="width:110px">类目</th><th style="width:80px">操作</th></tr></thead>
+                <tbody th:if="${docs.isEmpty()}">
+                <tr><td colspan="5" class="empty-state">知识库为空，先录入一条或运行数据导入脚本。</td></tr>
+                </tbody>
+                <tbody th:unless="${docs.isEmpty()}">
+                <tr th:each="doc : ${docs}">
+                    <td th:text="${doc.id()}">1</td>
+                    <td th:text="${doc.title()}">标题</td>
+                    <td th:text="${doc.description()}">描述</td>
+                    <td th:text="${doc.category()}">类目</td>
+                    <td><button class="btn btn-danger btn-sm" th:attr="data-id=${doc.id()}"
+                                onclick="removeDoc(this.dataset.id)">删除</button></td>
+                </tr>
+                </tbody>
+            </table>
+            <p class="muted" style="font-size:12.5px;margin-bottom:0;margin-top:14px;">
+                第 <span th:text="${page} + 1">1</span> 页，每页 <span th:text="${size}">20</span> 条；删除采用墓碑标记，检索不会返回已删除文档。
+            </p>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: admin-footer}"></footer>
+
+<script>
+    async function addDoc() {
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('desc').value.trim();
+        const category = document.getElementById('category').value.trim();
+        if (!title) { alert('标题不能为空'); return; }
+        const response = await fetch('/api/docs', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, description, category})
+        });
+        const data = await response.json();
+        document.getElementById('result').textContent =
+            '入库成功：id=' + data.id + '，端到端耗时 ' + data.elapsedMicros + ' μs。刷新查看列表。';
+    }
+
+    async function removeDoc(id) {
+        if (!confirm('确认删除文档 ' + id + '？')) { return; }
+        const response = await fetch('/api/docs/' + id, {method: 'DELETE'});
+        const data = await response.json();
+        if (data.removed) { location.reload(); } else { alert('删除失败：文档不存在'); }
+    }
+</script>
+</body>
+</html>

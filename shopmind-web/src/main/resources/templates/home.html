@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ShopMind · 用自然语言找到对的商品</title>
+    <link rel="stylesheet" th:href="@{/css/shopmind.css}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: storefront-header('home')}"></header>
+
+<!-- 品牌主视觉 -->
+<section class="hero">
+    <div class="container hero-inner">
+        <span class="eyebrow">纯 Java 自研向量检索 · 商品知识库智能导购</span>
+        <h1>用一句<span class="hl">自然语言</span>，<br>从十万件商品里找到对的选择</h1>
+        <p class="lead">
+            ShopMind 融合 HNSW 向量语义检索与 BM25 关键词检索，理解你的真实需求，
+            毫秒级给出可解释的推荐，而不只是关键字的生硬匹配。
+        </p>
+        <form class="hero-search" th:action="@{/products}" method="get">
+            <input class="input" type="text" name="q" placeholder="例如：适合长时间办公的静音键盘" autofocus>
+            <button class="btn btn-primary" type="submit">搜索商品</button>
+        </form>
+        <div class="hero-popular">
+            <span class="t">热门：</span>
+            <a class="chip" th:href="@{/products(q='主动降噪蓝牙耳机')}">主动降噪蓝牙耳机</a>
+            <a class="chip" th:href="@{/products(q='轻薄长续航笔记本')}">轻薄长续航笔记本</a>
+            <a class="chip" th:href="@{/products(q='人体工学静音鼠标')}">人体工学静音鼠标</a>
+            <a class="chip" th:href="@{/products(q='4K 护眼显示器')}">4K 护眼显示器</a>
+        </div>
+
+        <div class="stat-strip">
+            <div class="item"><div class="num" th:text="${total}">100000</div><div class="lbl">在售商品（件）</div></div>
+            <div class="item"><div class="num" th:text="${categories.size()}">10</div><div class="lbl">一级类目</div></div>
+            <div class="item"><div class="num" th:text="${dimension}">384</div><div class="lbl">向量维度</div></div>
+            <div class="item"><div class="num" th:text="${p99} + 'ms'">3.45ms</div><div class="lbl">检索 P99 延迟</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- 分类入口 -->
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <h2>按类目挑选</h2>
+                <div class="sub">覆盖数码、办公与智能家居的十大商品类目</div>
+            </div>
+            <a class="btn btn-ghost btn-sm" th:href="@{/products}">查看全部</a>
+        </div>
+        <div class="grid grid-4">
+            <th:block th:each="entry, it : ${categoryCounts}">
+                <th:block th:replace="~{fragments/components :: category-card(${entry.key}, ${entry.value}, ${it.index})}"></th:block>
+            </th:block>
+        </div>
+    </div>
+</section>
+
+<!-- 精选商品 -->
+<section class="section" style="padding-top:0;">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <h2>为你精选</h2>
+                <div class="sub">基于知识库的热门商品，点击卡片可直接向智能导购追问</div>
+            </div>
+            <a class="btn btn-ghost btn-sm" th:href="@{/products}">更多商品</a>
+        </div>
+        <div class="product-grid">
+            <th:block th:each="v : ${featured}">
+                <th:block th:replace="~{fragments/components :: product-card(${v})}"></th:block>
+            </th:block>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{fragments/layout :: storefront-footer}"></footer>
+</body>
+</html>

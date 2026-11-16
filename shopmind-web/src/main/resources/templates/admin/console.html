@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>检索调试台 · ShopMind 控制台</title>
+    <link rel="stylesheet" th:href="@{/css/shopmind.css}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header('console')}"></header>
+
+<main class="admin-main">
+    <div class="container">
+        <h1 class="admin-title">检索调试台</h1>
+        <p class="admin-sub">同一查询在暴力 / IVF / HNSW 三索引上并排执行，对照耗时与召回差异</p>
+
+        <div class="panel">
+            <div class="row" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+                <div class="field" style="flex:1;min-width:260px;">
+                    <label for="query">查询文本</label>
+                    <input class="input" id="query" value="降噪蓝牙耳机">
+                </div>
+                <div class="field"><label for="topk">Top-K</label><input class="input" id="topk" type="number" value="10" min="1" max="50" style="width:100px;"></div>
+                <div class="field"><label for="ef">efSearch</label><input class="input" id="ef" type="number" value="100" min="1" max="500" style="width:100px;"></div>
+                <div class="field">
+                    <label for="alpha">混合权重 <b id="alphaValue">0.8</b></label>
+                    <input id="alpha" type="range" min="0.4" max="1" step="0.1" value="0.8"
+                           oninput="document.getElementById('alphaValue').textContent=this.value">
+                </div>
+                <div class="field"><button class="btn btn-primary" onclick="runSearch()">并排检索</button></div>
+            </div>
+        </div>
+
+        <div class="cols-3" id="cols">
+            <div class="col-panel" id="col-brute-force"><h4>暴力检索（精确基准）</h4><div class="muted" style="font-size:12.5px;margin:8px 0;">等待检索…</div></div>
+            <div class="col-panel" id="col-ivf"><h4>IVF 倒排聚类</h4><div class="muted" style="font-size:12.5px;margin:8px 0;">等待检索…</div></div>
+            <div class="col-panel" id="col-hnsw"><h4>HNSW 分层近邻图</h4><div class="muted" style="font-size:12.5px;margin:8px 0;">等待检索…</div></div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: admin-footer}"></footer>
+
+<script>
+    async function runSearch() {
+        const query = document.getElementById('query').value.trim();
+        if (!query) { alert('请输入查询文本'); return; }
+        const body = {
+            query,
+            topK: parseInt(document.getElementById('topk').value, 10),
+            efSearch: parseInt(document.getElementById('ef').value, 10),
+            alpha: parseFloat(document.getElementById('alpha').value)
+        };
+        document.querySelectorAll('#cols .col-panel').forEach(c =>
+            c.querySelector('.muted').textContent = '检索中…');
+
+        const response = await fetch('/api/search-all', {
+            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        const baseline = new Set((data['brute-force']?.hits || []).map(h => h.id));
+        render('col-brute-force', data['brute-force'], baseline, true);
+        render('col-ivf', data['ivf'], baseline, false);
+        render('col-hnsw', data['hnsw'], baseline, false);
+    }
+
+    function render(colId, result, baseline, isBaseline) {
+        const col = document.getElementById(colId);
+        if (!result) { col.innerHTML = '<h4>无结果</h4>'; return; }
+        let html = '<h4>' + col.querySelector('h4').textContent + '</h4>';
+        html += '<div class="muted" style="font-size:12.5px;margin:8px 0;">耗时 '
+            + result.latencyMicros + ' μs · 命中 ' + result.hits.length + ' 条</div>';
+        let miss = 0;
+        for (const hit of result.hits) {
+            if (!isBaseline && !baseline.has(hit.id)) { miss++; }
+            html += '<div class="hit-row"><span class="clamp-2" style="max-width:70%;">'
+                + escapeHtml(hit.title || ('文档 ' + hit.id))
+                + '</span><span class="score">' + hit.score.toFixed(3) + '</span></div>';
+        }
+        if (!isBaseline) {
+            html += '<div style="color:var(--danger);font-size:12.5px;margin-top:8px;">相对基准未命中 ' + miss + ' 条</div>';
+        }
+        col.innerHTML = html;
+    }
+
+    function escapeHtml(text) {
+        return String(text).replace(/[&<>"']/g, s =>
+            ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+    }
+</script>
+</body>
+</html>

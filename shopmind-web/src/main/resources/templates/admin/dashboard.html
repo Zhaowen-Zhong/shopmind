@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>监控看板 · ShopMind 控制台</title>
+    <link rel="stylesheet" th:href="@{/css/shopmind.css}">
+</head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header('dashboard')}"></header>
+
+<main class="admin-main">
+    <div class="container">
+        <h1 class="admin-title">系统监控看板</h1>
+        <p class="admin-sub">检索服务、自研协议网关与写入链路的实时运行状态</p>
+
+        <div class="metric-cards">
+            <div class="metric-card"><div class="lbl">知识文档总数</div><div class="val brand" th:text="${stats['documents']}">0</div></div>
+            <div class="metric-card"><div class="lbl">写入模式</div><div class="val" th:text="${stats['writeMode']}">delta</div></div>
+            <div class="metric-card"><div class="lbl">内存增量（delta）</div><div class="val" th:text="${stats['deltaSize']}">0</div></div>
+            <div class="metric-card"><div class="lbl">待落盘 WAL（字节）</div><div class="val" th:text="${stats['walPendingBytes']}">0</div></div>
+        </div>
+
+        <div class="panel">
+            <h3>三套检索索引规模</h3>
+            <table class="data-table">
+                <thead><tr><th>索引</th><th>规模</th><th>类型</th></tr></thead>
+                <tbody>
+                <tr th:each="entry : ${stats['indexes']}"
+                    th:if="${entry.key == 'brute-force' or entry.key == 'ivf' or entry.key == 'hnsw'}">
+                    <td th:text="${entry.key}">索引</td>
+                    <td th:text="${entry.value['size']}">0</td>
+                    <td>
+                        <span class="badge" th:if="${entry.key == 'brute-force'}">精确基准</span>
+                        <span class="badge" th:if="${entry.key == 'ivf'}">近似·聚类</span>
+                        <span class="badge" th:if="${entry.key == 'hnsw'}">近似·近邻图</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel">
+            <h3>自研协议网关（Netty 长连接）</h3>
+            <table class="data-table">
+                <thead><tr><th>指标</th><th>数值</th><th>指标</th><th>数值</th></tr></thead>
+                <tbody>
+                <tr>
+                    <td>监听端口</td><td th:text="${stats['gateway']['port']}">9099</td>
+                    <td>当前活跃连接</td><td th:text="${stats['gateway']['activeConnections']}">0</td>
+                </tr>
+                <tr>
+                    <td>累计连接数</td><td th:text="${stats['gateway']['totalConnections']}">0</td>
+                    <td>累计检索请求</td><td th:text="${stats['gateway']['totalSearches']}">0</td>
+                </tr>
+                <tr>
+                    <td>限流拒绝</td><td th:text="${stats['gateway']['rejectedByLimit']}">0</td>
+                    <td>鉴权失败</td><td th:text="${stats['gateway']['unauthorized']}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: admin-footer}"></footer>
+</body>
+</html>

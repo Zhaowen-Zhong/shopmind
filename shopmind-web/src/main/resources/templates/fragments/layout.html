@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============ 商业前台 顶部导航 ============ -->
+<header class="site-header" th:fragment="storefront-header(active)">
+    <div class="container bar">
+        <a class="brand-logo" th:href="@{/}">
+            <span class="mark">S</span>
+            <span>ShopMind</span>
+        </a>
+        <nav class="main-nav">
+            <a th:href="@{/}" th:classappend="${active == 'home'} ? 'active'">首页</a>
+            <a th:href="@{/products}" th:classappend="${active == 'products'} ? 'active'">商品</a>
+            <a th:href="@{/guide}" th:classappend="${active == 'guide'} ? 'active'">智能导购</a>
+        </nav>
+        <form class="header-search" th:action="@{/products}" method="get">
+            <span class="ico">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            </span>
+            <input class="input" type="text" name="q" placeholder="搜索商品，如：降噪耳机">
+        </form>
+        <div class="header-actions">
+            <a class="btn btn-ghost btn-sm" th:href="@{/admin/dashboard}">运营后台</a>
+        </div>
+    </div>
+</header>
+
+<!-- ============ 商业前台 页脚 ============ -->
+<footer class="site-footer" th:fragment="storefront-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h4>ShopMind</h4>
+                <p style="color:#94a3b8;font-size:13.5px;line-height:1.8;">
+                    纯 Java 自研向量检索与商品知识库的智能导购平台。
+                    用自然语言理解需求，毫秒级从十万级商品中找到对的选择。
+                </p>
+            </div>
+            <div>
+                <h4>选购</h4>
+                <a th:href="@{/products}">全部商品</a>
+                <a th:href="@{/products(category='手机')}">手机</a>
+                <a th:href="@{/products(category='耳机')}">耳机</a>
+                <a th:href="@{/products(category='笔记本')}">笔记本</a>
+            </div>
+            <div>
+                <h4>服务</h4>
+                <a th:href="@{/guide}">智能导购</a>
+                <a th:href="@{/products}">分类浏览</a>
+                <a th:href="@{/admin/kb}">知识库</a>
+            </div>
+            <div>
+                <h4>技术内核</h4>
+                <a th:href="@{/admin/dashboard}">监控看板</a>
+                <a th:href="@{/admin/console}">检索调试台</a>
+                <a href="https://github.com/Zhaowen-Zhong/shopmind" target="_blank" rel="noopener">开源仓库</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 ShopMind · 仲昭雯 · 中国矿业大学计算机学院</span>
+            <span>Java 21 · Spring Boot · Netty · HNSW / IVF / BM25</span>
+        </div>
+    </div>
+</footer>
+
+<!-- ============ 运营后台 顶部导航 ============ -->
+<header class="admin-header" th:fragment="admin-header(active)">
+    <div class="container bar">
+        <a class="admin-logo" th:href="@{/admin/dashboard}">
+            <span class="mark">S</span>
+            <span>ShopMind 控制台</span>
+        </a>
+        <nav class="admin-nav">
+            <a th:href="@{/admin/dashboard}" th:classappend="${active == 'dashboard'} ? 'active'">监控看板</a>
+            <a th:href="@{/admin/console}" th:classappend="${active == 'console'} ? 'active'">检索调试台</a>
+            <a th:href="@{/admin/kb}" th:classappend="${active == 'kb'} ? 'active'">知识库</a>
+        </nav>
+        <div class="admin-actions">
+            <a th:href="@{/}">返回前台</a>
+        </div>
+    </div>
+</header>
+
+<!-- ============ 运营后台 页脚 ============ -->
+<footer th:fragment="admin-footer" style="border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-size:12.5px;background:#fff;">
+    <div class="container" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <span>ShopMind 运营后台 · 内部工程视角</span>
+        <span>© 2026 仲昭雯</span>
+    </div>
+</footer>
+
+</body>
+</html>
